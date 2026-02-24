@@ -6,7 +6,8 @@ public class intakeConstants {
   public static final int kIntakeMotorId = 10;
   // Positions (in degrees)
   public static final double kInPosition = 0.0;
-  public static final double kOutPosition = 90.0;
+  public static final double kOutPosition = 200.0;
+  public static final double kMidPosition = 120;
   // Speeds
   public static final double kIntakeVoltage = 8.0;
   public static final double kEjectVoltage = -4.0;

@@ -8,9 +8,6 @@ public class intake extends SubsystemBase {
   private final intakeIO io;
   private final intakeIOInputsAutoLogged inputs = new intakeIOInputsAutoLogged();
   private static final double INTAKE_VOLTAGE = intakeConstants.kIntakeVoltage;
-  // Counters
-  public boolean intakeActive = false;
-  public boolean pivotActive = false;
 
   public enum pivotPosition {
     IN(0.0),

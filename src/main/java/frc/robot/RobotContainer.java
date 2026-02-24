@@ -212,9 +212,9 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  if (!intake.intakeActive) {
+                  if (!intake.isIntakeRunning()) {
                     intake.startIntake();
-                  } else if (intake.intakeActive) {
+                  } else if (intake.isIntakeRunning()) {
                     intake.stopIntake();
                   }
                 }));
@@ -223,10 +223,10 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  if (!intake.pivotActive) {
-                    intake.setPivotAngle(200.0);
-                  } else if (intake.pivotActive) {
-                    intake.setPivotAngle(0.0);
+                  if (intake.getPivotAngle() > 100) {
+                    intake.setPivotAngle(0);
+                  } else if (intake.getPivotAngle() < 100) {
+                    intake.setPivotAngle(200);
                   }
                 }));
   }
