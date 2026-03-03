@@ -37,27 +37,27 @@ public class ShooterKinematics {
     public static final boolean ENABLE_EMPIRICAL_LUT = false; 
     
     // Field target (Meters)
-    private static final double TARGET_X_METERS = 10.0;
-    private static final double TARGET_Y_METERS = 10.0;
-    private static final double TARGET_Z_METERS = 10.0; 
+    private static final double TARGET_X_METERS = 4.56;
+    private static final double TARGET_Y_METERS = 4.035;
+    private static final double TARGET_Z_METERS = 1.83;
     
     // Robot measurements (Inches)
-    private static final double TURRET_OFFSET_X_IN = 10.0; 
-    private static final double TURRET_OFFSET_Y_IN = 0.0;  
-    private static final double SHOOTER_HEIGHT_IN = 16.0;
-    private static final double WHEEL_RADIUS_IN = 2.0;
+    private static final double TURRET_OFFSET_X_IN = 7.0;
+    private static final double TURRET_OFFSET_Y_IN = 0.0;
+    private static final double SHOOTER_HEIGHT_IN =  15.15;
+    private static final double WHEEL_RADIUS_IN = 2.0; // Theoretically
 
     // Target Geometry (Inches & Degrees) - To prevent bounce-outs!
-    private static final double TARGET_DIAMETER_IN = 24.0;
-    private static final double MIN_DESCENT_ANGLE_DEG = 20.0; 
+    private static final double TARGET_DIAMETER_IN = 11.76;
+    private static final double MIN_DESCENT_ANGLE_DEG = 20.0; // !Test
     
     // Motor & Limits
-    public static final double IDEAL_MOTOR_RPM = 3000.0; 
-    public static final double GEAR_REDUCTION = 1.0;     
-    private static final double MIN_HOOD_ANGLE_DEG = 0.0;  
-    private static final double MAX_HOOD_ANGLE_DEG = 75.0; 
-    private static final double MIN_TURRET_ANGLE_DEG = -150.0; 
-    private static final double MAX_TURRET_ANGLE_DEG = 150.0;
+    public static final double IDEAL_MOTOR_RPM = 5676.0; // !Darius's guess
+    public static final double GEAR_REDUCTION = 3.0; // !Holden doesn't know, Darius guesses it will proably be 3/1
+    private static final double MIN_HOOD_ANGLE_DEG = 30.0;  
+    private static final double MAX_HOOD_ANGLE_DEG = 63.0; // Theoretically 70
+    private static final double MIN_TURRET_ANGLE_DEG = -270.0; // Theoretically -360
+    private static final double MAX_TURRET_ANGLE_DEG = 270.0; // Theoretically 360
 
     // =========================================================================
     // 2. PHYSICS CONSTANTS (The Metric Zone)
@@ -74,9 +74,9 @@ public class ShooterKinematics {
      * RESOURCE: https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/util/Units.html
      * HINT: Look for the `Units.inchesToMeters(...)` method.
      */
-    private static final Translation2d TURRET_OFFSET_METERS = new Translation2d(0.0, 0.0); // Fix me!
-    private static final double SHOOTER_HEIGHT_METERS = 0.0; // Fix me!
-    private static final double WHEEL_RADIUS_METERS = 0.0; // Fix me!
+    private static final Translation2d TURRET_OFFSET_METERS = new Translation2d(Units.inchesToMeters(10.0), Units.inchesToMeters(0.0));
+    private static final double SHOOTER_HEIGHT_METERS = Units.inchesToMeters(16.0);
+    private static final double WHEEL_RADIUS_METERS = Units.inchesToMeters(4.0);
 
     // =========================================================================
     // 3. THE LOOK-UP TABLE (LUT)
@@ -103,7 +103,10 @@ public class ShooterKinematics {
      */
     public static double getExitVelocityMetersPerSec() {
         // TODO #2: Implement the math described in the hints above.
-        return 0.0; 
+        double realRPM = IDEAL_MOTOR_RPM / GEAR_REDUCTION;
+        double wheelCircumference = 2 * WHEEL_RADIUS_METERS * Math.PI;
+        double surfaceSpeed = (wheelCircumference * realRPM) / 2;
+        return 0.0;
     }
 
     /**
@@ -115,7 +118,9 @@ public class ShooterKinematics {
      */
     public static Translation2d getTurretFieldPosition(Pose2d robotPose) {
         // TODO #3: Calculate the turret's true Translation2d on the field.
-        return new Translation2d(); 
+        Translation2d turretRotation = TURRET_OFFSET_METERS.rotateBy(robotPose.getRotation());
+        Translation2d turretPosition = robotPose.getTranslation().plus(turretRotation);
+        return turretPosition;
     }
 
     public static double getDistanceToTargetMeters(Pose2d robotPose, Translation2d targetPos) {
@@ -136,10 +141,17 @@ public class ShooterKinematics {
      * HINT 3: Wrap that angle in a Rotation2d, then subtract the robot's current rotation.
      * HINT 4: Get the degrees. If it's outside MIN_TURRET_ANGLE_DEG and MAX_TURRET_ANGLE_DEG, return Double.NaN!
      */
-    public static double calculateTurretAngleDeg(Pose2d robotPose, Translation2d targetPos) {
+    public static double calculateTurretAngleDeg(Pose2d robotPose) {
         // TODO #4: Implement Turret Aiming Logic
-        return Double.NaN; 
-    }
+        Translation2d turretPosition = getTurretFieldPosition(robotPose);
+        double deltaX = TARGET_X_METERS - turretPosition.getX();
+        double deltaY = TARGET_Y_METERS - turretPosition.getY();
+        Rotation2d fieldTargetAngle = new Rotation2d(Math.atan2(deltaY, deltaX));
+        if (fieldTargetAngle.getDegrees() < MIN_TURRET_ANGLE_DEG || fieldTargetAngle.getDegrees() > MAX_TURRET_ANGLE_DEG) {
+            return Double.NaN;
+        }
+        return fieldTargetAngle.getDegrees();
+        }
 
     /**
      * Uses the Projectile Motion Quadratic Equation to find the launch angle.
@@ -158,7 +170,31 @@ public class ShooterKinematics {
      */
     public static double getPhysicsHoodAngleDeg(Pose2d robotPose, Translation2d targetPos) {
         // TODO #5: Implement the quadratic formula projectile motion solver
-        return Double.NaN; 
+        double exitVelocity = getExitVelocityMetersPerSec();
+        double distance = getDistanceToTargetMeters(robotPose, targetPos);
+        double deltaZ = TARGET_Z_METERS - SHOOTER_HEIGHT_METERS;
+        double k = ((9.8 * Math.pow(distance, 2)) / (2 * Math.pow(exitVelocity, 2)));
+        double B = -distance;
+        double C = deltaZ + k;
+        double discriminant = (Math.pow(B, 2) - 4 * k * C);
+        if (discriminant < 0) {
+            return Double.NaN; 
+        }
+        double tanTheta1 = (-B + Math.sqrt(discriminant)) / (2 * k);
+        double tanTheta2 = (-B - Math.sqrt(discriminant)) / (2 * k);
+        double angle1 = Math.toDegrees(Math.atan(tanTheta1));
+        double angle2 = Math.toDegrees(Math.atan(tanTheta2));
+        boolean angle1Valid = angle1 >= MIN_HOOD_ANGLE_DEG && angle1 <= MAX_HOOD_ANGLE_DEG && isTrajectoryValidForTopOpening(angle1, distance, exitVelocity);
+        boolean angle2Valid = angle2 >= MIN_HOOD_ANGLE_DEG && angle2 <= MAX_HOOD_ANGLE_DEG && isTrajectoryValidForTopOpening(angle2, distance, exitVelocity);
+        if (angle1Valid && angle2Valid) {
+            return Math.min(angle1, angle2);
+        } else if (angle1Valid) {
+            return angle1;
+        } else if (angle2Valid) {
+            return angle2;
+        } else {
+            return Double.NaN;
+        }
     }
 
     /**
@@ -175,6 +211,17 @@ public class ShooterKinematics {
      */
     private static boolean isTrajectoryValidForTopOpening(double hoodAngleDeg, double distance, double exitVelocity) {
         // TODO #6: Implement the Falling/Steepness Check
+        double horizVelocity = exitVelocity * Math.cos(Math.toRadians(hoodAngleDeg));
+        double initVertiVelocity = exitVelocity * Math.sin(Math.toRadians(hoodAngleDeg));
+        double timeOfFlight = distance / horizVelocity;
+        double finalVertiVelocity = initVertiVelocity - 9.8 * timeOfFlight;
+        if (finalVertiVelocity > 0) {
+            return false;
+        }
+        double entryAngle = Math.toDegrees(Math.abs(Math.atan2(finalVertiVelocity, horizVelocity)));
+        if (entryAngle >= MIN_DESCENT_ANGLE_DEG) {
+            return true;
+        }
         return false;
     }
 
@@ -186,6 +233,12 @@ public class ShooterKinematics {
      */
     public static double getOptimalHoodAngleDeg(Pose2d robotPose, Translation2d targetPos) {
         // TODO #7: Implement Graceful Degradation logic
-        return Double.NaN; 
+        if (ENABLE_EMPIRICAL_LUT == true) { //  && !HOOD_ANGLE_MAP.isEmpty()
+            double distance = getDistanceToTargetMeters(robotPose, targetPos);
+            return HOOD_ANGLE_MAP.get(distance);
+        } else {
+            double angle = getPhysicsHoodAngleDeg(robotPose, targetPos);
+            return angle;
+        }
     }
 }
