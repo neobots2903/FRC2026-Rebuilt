@@ -25,7 +25,6 @@ public class ShooterKinematics {
     // =========================================================================
 
     /**
-     * TODO #0: Take all the measurements below. These are all placeholders.
      * RESOURCE: https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html
      * * HINT 1: The hub coordinates and height can be found in the Field Coordinate System document on the FRC Game Manual.
      * * HINT 2: The robot measurements can be taken on the actual robot or from CAD.
@@ -70,7 +69,6 @@ public class ShooterKinematics {
     );
     
     /**
-     * TODO #1: Convert the INCHES into METERS!
      * RESOURCE: https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/util/Units.html
      * HINT: Look for the `Units.inchesToMeters(...)` method.
      */
@@ -169,7 +167,6 @@ public class ShooterKinematics {
      * HINT 5: If both fit and are valid, return the SMALLER angle (flatter shot). 
      */
     public static double getPhysicsHoodAngleDeg(Pose2d robotPose, Translation2d targetPos) {
-        // TODO #5: Implement the quadratic formula projectile motion solver
         double exitVelocity = getExitVelocityMetersPerSec();
         double distance = getDistanceToTargetMeters(robotPose, targetPos);
         double deltaZ = TARGET_Z_METERS - SHOOTER_HEIGHT_METERS;
@@ -210,7 +207,6 @@ public class ShooterKinematics {
      * HINT 5: Return true ONLY if entry angle >= MIN_DESCENT_ANGLE_DEG.
      */
     private static boolean isTrajectoryValidForTopOpening(double hoodAngleDeg, double distance, double exitVelocity) {
-        // TODO #6: Implement the Falling/Steepness Check
         double horizVelocity = exitVelocity * Math.cos(Math.toRadians(hoodAngleDeg));
         double initVertiVelocity = exitVelocity * Math.sin(Math.toRadians(hoodAngleDeg));
         double timeOfFlight = distance / horizVelocity;
@@ -232,8 +228,7 @@ public class ShooterKinematics {
      * Otherwise, call getPhysicsHoodAngleDeg() and return its result.
      */
     public static double getOptimalHoodAngleDeg(Pose2d robotPose, Translation2d targetPos) {
-        // TODO #7: Implement Graceful Degradation logic
-        if (ENABLE_EMPIRICAL_LUT == true) { //  && !HOOD_ANGLE_MAP.isEmpty()
+        if (ENABLE_EMPIRICAL_LUT) { //  && !HOOD_ANGLE_MAP.isEmpty()
             double distance = getDistanceToTargetMeters(robotPose, targetPos);
             return HOOD_ANGLE_MAP.get(distance);
         } else {

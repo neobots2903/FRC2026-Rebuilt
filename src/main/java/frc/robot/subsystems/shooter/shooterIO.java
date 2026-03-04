@@ -12,11 +12,13 @@ public interface shooterIO {
         public double hoodAppliedCurrentAmps = 0.0;
         public double hoodAppliedVolts = 0.0;
         public double hoodSetPointDegrees = 0.0;
-        // rotationMotor inputs
+        // rotationMotor inputs // TODO: Remove
         public double rotationPositionDegrees = 0.0;
         public double rotationAppliedCurrentAmps = 0.0;
         public double rotationAppliedVolts = 0.0;
         public double rotationSetPointDegrees = 0.0;
+
+        // TODO: Add flywheelMotor inputs
     }
 
     public default void updateInputs(shooterIOInputs inputs) {}

@@ -14,9 +14,11 @@ import edu.wpi.first.math.MathUtil;
 public class shooterIOreal implements shooterIO {
    
     // The flywheel, hood, and rotation motors
-    private final TalonFX flywheelMotor;
+    private final TalonFX flywheelMotor; // TODO: configure
     private final SparkMax hoodMotor;
-    private final SparkMax rotationMotor;
+    private final SparkMax rotationMotor; // TODO: Remove
+
+    // TODO: Missing encoders and PID controllers.
 
     // Generally sets up the motors
     @SuppressWarnings("removal")
@@ -30,6 +32,7 @@ public class shooterIOreal implements shooterIO {
     }
     // !Configure flywheelMotor
     
+    // TODO: These two methods are indentical. Refactor to remove redundancy.
     // Configures the hood motor
     private SparkMaxConfig configureHoodMotor() {
         SparkMaxConfig config = new SparkMaxConfig();
@@ -72,7 +75,7 @@ public class shooterIOreal implements shooterIO {
         hoodPID.setReference(clampedPosition, ControlType.kPosition);
     }
 
-    @Override
+    @Override // TODO: Remove
     // Sets the angle for the rotation
     public void setRotationPosition (double positionDegrees) {
         double clampedPosition = 
@@ -97,7 +100,7 @@ public class shooterIOreal implements shooterIO {
         rotationEncoder.setPosition(0.0);
     }
 
-    @Override
+    @Override // TODO: Not needed
     // Sets the brake mode
     public void setBrakeMode(boolean enabled) {
         // !Set flywheelMotor brake mode
