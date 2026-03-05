@@ -30,6 +30,10 @@ import frc.robot.subsystems.intake.intake;
 import frc.robot.subsystems.intake.intakeIO;
 import frc.robot.subsystems.intake.intakeIOsim;
 import frc.robot.subsystems.intake.intakeIOsparkmax;
+import frc.robot.subsystems.shooter.shooter;
+import frc.robot.subsystems.shooter.shooterIO;
+import frc.robot.subsystems.shooter.shooterIOreal;
+import frc.robot.subsystems.shooter.shooterIOsim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -47,6 +51,7 @@ public class RobotContainer {
   private final intake intake;
   private final Drive drive;
   private final Vision vision;
+  private final shooter shooter;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -102,6 +107,8 @@ public class RobotContainer {
 
         intake = new intake(new intakeIOsparkmax());
 
+        shooter = new shooter(new shooterIOreal());
+
         break;
 
       case SIM:
@@ -122,6 +129,8 @@ public class RobotContainer {
 
         intake = new intake(new intakeIOsim());
 
+        shooter = new shooter(new shooterIOsim());
+
         break;
 
       default:
@@ -137,6 +146,7 @@ public class RobotContainer {
         // (Use same number of dummy implementations as the real robot)
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         intake = new intake(new intakeIO() {});
+        shooter = new shooter(new shooterIO() {});
         break;
     }
 
@@ -227,6 +237,20 @@ public class RobotContainer {
                     intake.setPivotAngle(0);
                   } else if (intake.getPivotAngle() < 100) {
                     intake.setPivotAngle(200);
+                  }
+                }));
+
+    // Shooter inputs:
+
+    operatorController
+        .x()
+        .onTrue(
+            Commands.run(
+                () -> {
+                  if (shooter.getFlywheelVelocity() > 0) {
+                    shooter.stopFlywheel();
+                  } else {
+                    shooter.startFlywheel();
                   }
                 }));
   }

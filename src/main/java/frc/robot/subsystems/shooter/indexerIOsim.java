@@ -1,5 +1,3 @@
 package frc.robot.subsystems.shooter;
 
-public class indexerIOsim {
-    
-}
+public class indexerIOsim {}

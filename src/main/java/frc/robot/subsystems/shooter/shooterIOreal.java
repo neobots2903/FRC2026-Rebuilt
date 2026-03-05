@@ -1,119 +1,112 @@
 package frc.robot.subsystems.shooter;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.math.MathUtil;
 
 public class shooterIOreal implements shooterIO {
-   
-    // The flywheel, hood, and rotation motors
-    private final TalonFX flywheelMotor; // TODO: configure
-    private final SparkMax hoodMotor;
-    private final SparkMax rotationMotor; // TODO: Remove
 
-    // TODO: Missing encoders and PID controllers.
+  // The flywheel and hood motors
+  private final TalonFX flywheelMotor;
+  private final SparkMax hoodMotor;
 
-    // Generally sets up the motors
-    @SuppressWarnings("removal")
-    public shooterIOreal() {
-        // !Initialize flywheelMotor
-        hoodMotor = new SparkMax(shooterConstants.kHoodMotorID, MotorType.kBrushless);
-        rotationMotor = new SparkMax(shooterConstants.kRotationMotorID, MotorType.kBrushless);
-        // !Configure flywheelMotor
-        hoodMotor.configure(configureHoodMotor(), ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        rotationMotor.configure(configureRotationMotor(), ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    }
-    // !Configure flywheelMotor
-    
-    // TODO: These two methods are indentical. Refactor to remove redundancy.
-    // Configures the hood motor
-    private SparkMaxConfig configureHoodMotor() {
-        SparkMaxConfig config = new SparkMaxConfig();
-        config.idleMode(IdleMode.kBrake);
-        config.smartCurrentLimit(shooterConstants.kCurrentLimit);
-        config.voltageCompensation(12.0); // Placeholder
-        return config;
-    }
+  private final RelativeEncoder hoodEncoder;
+  private final SparkClosedLoopController hoodPID;
 
-    // Configures the rotation motor
-    private SparkMaxConfig configureRotationMotor() {
-        SparkMaxConfig config = new SparkMaxConfig();
-        config.idleMode(IdleMode.kBrake);
-        config.smartCurrentLimit(shooterConstants.kCurrentLimit);
-        config.voltageCompensation(12.0); // Placeholder
-        return config;
-    }
+  // Generally sets up the motors
+  @SuppressWarnings("removal")
+  public shooterIOreal() {
+    flywheelMotor = new TalonFX(shooterConstants.kFlywheelMotorID);
+    flywheelMotor.getConfigurator().apply(configureFlywheelMotor());
+    hoodMotor = new SparkMax(shooterConstants.kHoodMotorID, SparkLowLevel.MotorType.kBrushless);
+    hoodMotor.configure(
+        configureHoodMotor(), ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    hoodEncoder = hoodMotor.getEncoder();
+    hoodPID = hoodMotor.getClosedLoopController();
+  }
 
-    @Override
-    // Updates inputs
-    public void updateInputs(shooterIOInputs inputs) {
-        // !Update flywheelMotor inputs
+  // Configures the flywheel motor
+  private TalonFXConfiguration configureFlywheelMotor() {
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    config.Slot0.kP = shooterConstants.kFlywheelP;
+    config.Slot0.kI = shooterConstants.kFlywheelI;
+    config.Slot0.kD = shooterConstants.kFlywheelD;
+    config.CurrentLimits.SupplyCurrentLimit = shooterConstants.kCurrentLimit;
+    config.Feedback.SensorToMechanismRatio = shooterConstants.kFlywheelGearRatio;
+    return config;
+  }
 
-        // Updates the hood inputs
-        inputs.hoodPositionDegrees = hoodEncoder.getPosition();
-        inputs.hoodAppliedCurrentAmps = hoodMotor.getOutputCurrent();
-        inputs.hoodAppliedVolts = hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage();
-        // Updates the rotation inputs
-        inputs.rotationPositionDegrees = rotationEncoder.getPosition();
-        inputs.rotationAppliedCurrentAmps = rotationMotor.getOutputCurrent();
-        inputs.rotationAppliedVolts = rotationMotor.getAppliedOutput() * rotationMotor.getBusVoltage();
-    }
+  // Configures the hood motor
+  private SparkMaxConfig configureHoodMotor() {
+    SparkMaxConfig config = new SparkMaxConfig();
+    config.idleMode(IdleMode.kBrake);
+    config.smartCurrentLimit(shooterConstants.kCurrentLimit);
+    config.closedLoop.pid(
+        shooterConstants.kHoodP, shooterConstants.kHoodI, shooterConstants.kHoodD); // Placeholder
+    config.voltageCompensation(12.0); // Placeholder
+    config.encoder.positionConversionFactor(shooterConstants.kTurretDegreesPerRotation);
+    config.closedLoop.p(shooterConstants.kHoodP);
+    config.closedLoop.i(shooterConstants.kHoodI);
+    config.closedLoop.d(shooterConstants.kHoodD);
+    return config;
+  }
 
-    @Override
-    // Sets the angle for the hood
-    public void setHoodPosition(double positionDegrees) {
-        double clampedPosition = 
-            MathUtil.clamp(positionDegrees, shooterConstants.kMinHoodAngle, shooterConstants.kMaxHoodAngle);
-        hoodSetpointDegrees = clampedPosition;
-        hoodPID.setReference(clampedPosition, ControlType.kPosition);
-    }
+  @Override
+  // Updates inputs
+  public void updateInputs(shooterIOInputs inputs) {
+    // Updates the flywheel inputs
+    flywheelMotor.getVelocity();
+    inputs.flywheelVelocity =
+        flywheelMotor.getVelocity().getValueAsDouble()
+            * 60.0; // Might need to multiply by gear ratio
+    flywheelMotor.getStatorCurrent();
+    inputs.flywheelCurrent = flywheelMotor.getStatorCurrent().getValueAsDouble();
+    // Updates the hood inputs
+    inputs.hoodPositionDegrees = hoodEncoder.getPosition();
+    inputs.hoodAppliedCurrentAmps = hoodMotor.getOutputCurrent();
+    inputs.hoodAppliedVolts = hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage();
+  }
 
-    @Override // TODO: Remove
-    // Sets the angle for the rotation
-    public void setRotationPosition (double positionDegrees) {
-        double clampedPosition = 
-            MathUtil.clamp(positionDegrees, shooterConstants.kMinRotationAngle, shooterConstants.kMaxRotationAngle);
-        rotationSetpointDegrees = clampedPosition;
-        rotationPID.setReference(clampedPosition, ControlType.kPosition);
-    }
+  @Override
+  // Sets the angle for the hood
+  public void setHoodPosition(double positionDegrees) {
+    double clampedPosition =
+        MathUtil.clamp(
+            positionDegrees, shooterConstants.kMinHoodAngle, shooterConstants.kMaxHoodAngle);
+    hoodPID.setReference(clampedPosition, ControlType.kPosition);
+  }
 
-    @Override
-    // Stops the systems
-    public void stop() {
-        // !Stop flywheelMotor
-        hoodMotor.stopMotor();
-        rotationMotor.stopMotor();
-    }
+  @Override
+  // Sets the velocity for the flywheel
+  public void setFlywheelVelocity(double velocityRPM) {
+    final VelocityVoltage flywheelMotor_request = new VelocityVoltage(0).withSlot(0);
+    flywheelMotor.setControl(
+        flywheelMotor_request
+            .withVelocity(velocityRPM * 60)
+            .withFeedForward(shooterConstants.kFeedForward * Math.signum(velocityRPM)));
+  }
 
-    @Override
-    // Resets the encoders
-    public void resetEncoders() {
-        // !Reset flywheelMotor encoders
-        hoodEncoder.setPosition(0.0);
-        rotationEncoder.setPosition(0.0);
-    }
+  @Override
+  // Stops the systems
+  public void stop() {
+    flywheelMotor.stopMotor();
+    hoodMotor.stopMotor();
+  }
 
-    @Override // TODO: Not needed
-    // Sets the brake mode
-    public void setBrakeMode(boolean enabled) {
-        // !Set flywheelMotor brake mode
-        SparkMaxConfig hoodConfig = new SparkMaxConfig();
-        SparkMaxConfig intakeConfig = new SparkMaxConfig();
-        IdleMode mode = enabled ? IdleMode.kBrake : IdleMode.kCoast;
-        // !Do flywheelMotor idleMode
-        hoodConfig.idleMode(mode);
-        rotationConfig.idleMode(mode);
-        // !Apply flywheelMotor configuration
-        hoodMotor.configure(
-            hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        rotationMotor.configure(
-            rotationConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    }
+  @Override
+  // Resets the encoders
+  public void resetEncoders() {
+    flywheelMotor.setPosition(0.0);
+    hoodEncoder.setPosition(0.0);
+  }
 }
