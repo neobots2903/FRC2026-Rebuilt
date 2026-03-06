@@ -1,5 +1,7 @@
 package frc.robot.subsystems.shooter;
 
+import edu.wpi.first.math.geometry.Translation3d;
+
 public class shooterConstants {
   // Motor IDs
   public static final int kFlywheelMotorID = 11;
@@ -23,6 +25,12 @@ public class shooterConstants {
   public static final double kRotationPositionTolerance = 2.0;
 
   public static final double kTurretDegreesPerRotation = 1.0; // Placeholder
+
+  public static final double TARGET_X_METERS = 4.56;
+  public static final double TARGET_Y_METERS = 4.035;
+  public static final double TARGET_Z_METERS = 1.83;
+  public static final Translation3d TARGET_POSE_METERS =
+      new Translation3d(TARGET_X_METERS, TARGET_Y_METERS, TARGET_Z_METERS);
 
   // Mechanical Ratios
   public static final double kHoodDegreesPerRotation = 360.0 / 1.0; // Placeholder

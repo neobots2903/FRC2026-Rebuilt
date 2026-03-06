@@ -33,11 +33,6 @@ public class ShooterKinematics {
   // Toggle for our empirical Look-Up Table (LUT)
   public static final boolean ENABLE_EMPIRICAL_LUT = false;
 
-  // Field target (Meters)
-  private static final double TARGET_X_METERS = 4.56;
-  private static final double TARGET_Y_METERS = 4.035;
-  private static final double TARGET_Z_METERS = 1.83;
-
   // Robot measurements (Inches)
   private static final double TURRET_OFFSET_X_IN = 7.0;
   private static final double TURRET_OFFSET_Y_IN = 0.0;
@@ -63,8 +58,7 @@ public class ShooterKinematics {
 
   private static final double GRAVITY = 9.81;
 
-  private static final Translation3d TARGET_POSE_METERS =
-      new Translation3d(TARGET_X_METERS, TARGET_Y_METERS, TARGET_Z_METERS);
+  private static final Translation3d TARGET_POSE_METERS = shooterConstants.TARGET_POSE_METERS;
 
   /**
    * RESOURCE:
@@ -145,8 +139,8 @@ public class ShooterKinematics {
   public static double calculateTurretAngleDeg(Pose2d robotPose) {
     // TODO #4: Implement Turret Aiming Logic
     Translation2d turretPosition = getTurretFieldPosition(robotPose);
-    double deltaX = TARGET_X_METERS - turretPosition.getX();
-    double deltaY = TARGET_Y_METERS - turretPosition.getY();
+    double deltaX = shooterConstants.TARGET_X_METERS - turretPosition.getX();
+    double deltaY = shooterConstants.TARGET_Y_METERS - turretPosition.getY();
     Rotation2d fieldTargetAngle = new Rotation2d(Math.atan2(deltaY, deltaX));
     if (fieldTargetAngle.getDegrees() < MIN_TURRET_ANGLE_DEG
         || fieldTargetAngle.getDegrees() > MAX_TURRET_ANGLE_DEG) {
@@ -170,7 +164,7 @@ public class ShooterKinematics {
   public static double getPhysicsHoodAngleDeg(Pose2d robotPose, Translation2d targetPos) {
     double exitVelocity = getExitVelocityMetersPerSec();
     double distance = getDistanceToTargetMeters(robotPose, targetPos);
-    double deltaZ = TARGET_Z_METERS - SHOOTER_HEIGHT_METERS;
+    double deltaZ = shooterConstants.TARGET_Z_METERS - SHOOTER_HEIGHT_METERS;
     double k = ((9.8 * Math.pow(distance, 2)) / (2 * Math.pow(exitVelocity, 2)));
     double B = -distance;
     double C = deltaZ + k;

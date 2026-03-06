@@ -21,6 +21,7 @@ public class shooter extends SubsystemBase {
     Logger.recordOutput("Shooter/FlywheelSetpointRPM", inputs.flywheelSetpointRPM);
     Logger.recordOutput("Shooter/HoodPositionDegrees", inputs.hoodPositionDegrees);
     Logger.recordOutput("Shooter/HoodAppliedCurrentAmps", inputs.hoodAppliedCurrentAmps);
+    Logger.recordOutput("Shooter/HoodPositionDegrees", inputs.hoodPositionDegrees);
     Logger.recordOutput("Shooter/HoodAppliedVolts", inputs.hoodAppliedVolts);
   }
 
