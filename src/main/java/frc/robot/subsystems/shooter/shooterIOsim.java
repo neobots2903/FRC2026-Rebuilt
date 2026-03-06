@@ -30,9 +30,7 @@ public class shooterIOsim implements shooterIO {
             LinearSystemId.createDCMotorSystem(
                 DCMotor.getKrakenX60(1), MOI, shooterConstants.kGearRatio),
             DCMotor.getKrakenX60(1));
-    flywheelPID =
-        new PIDController(
-            shooterConstants.kFlywheelP, shooterConstants.kFlywheelI, shooterConstants.kFlywheelD);
+    flywheelPID = new PIDController(0.06, 0.0, 0.0);
     hoodMotorSim =
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(
@@ -54,12 +52,13 @@ public class shooterIOsim implements shooterIO {
       hoodAppliedVolts = 0.0;
     }
     // Updates
-    flywheelMotorSim.setInputVoltage(flywheelAppliedVolts);
     flywheelMotorSim.update(0.02);
     hoodMotorSim.setInputVoltage(hoodAppliedVolts);
     hoodMotorSim.update(0.02);
     // Inputs
     inputs.flywheelCurrent = flywheelMotorSim.getCurrentDrawAmps();
+    inputs.flywheelVelocity = getFlywheelRPM();
+    inputs.flywheelAppliedVolts = flywheelAppliedVolts;
     inputs.hoodPositionDegrees = hoodMotorSim.getAngularPositionRotations() * 360.0;
     inputs.hoodAppliedCurrentAmps = hoodMotorSim.getCurrentDrawAmps();
     inputs.hoodAppliedVolts = hoodAppliedVolts;
@@ -71,6 +70,9 @@ public class shooterIOsim implements shooterIO {
       double pidOutput = flywheelPID.calculate(currentRPM, flywheelSetpointRPM);
       flywheelAppliedVolts = MathUtil.clamp(pidOutput, -12.0, 12.0);
       flywheelMotorSim.setInputVoltage(flywheelAppliedVolts);
+      inputs.flywheelSetpointRPM = flywheelSetpointRPM;
+    } else {
+      inputs.flywheelSetpointRPM = 0.0;
     }
   }
 
@@ -101,17 +103,12 @@ public class shooterIOsim implements shooterIO {
     hoodAppliedVolts = 0.0;
     flywheelMotorSim.setInputVoltage(flywheelAppliedVolts);
     hoodMotorSim.setInputVoltage(hoodAppliedVolts);
+    flywheelSetpointRPM = null;
   }
 
   @Override
   // Resets encoders
   public void resetEncoders() {
     hoodMotorSim.setState(0.0, 0.0);
-  }
-
-  @Override
-  // Sets brake mode
-  public void setBrakeMode(boolean enabled) {
-    // Handled automatically in the simulation
   }
 }

@@ -245,14 +245,10 @@ public class RobotContainer {
     operatorController
         .x()
         .onTrue(
-            Commands.run(
-                () -> {
-                  if (shooter.getFlywheelVelocity() > 0) {
-                    shooter.stopFlywheel();
-                  } else {
-                    shooter.startFlywheel();
-                  }
-                }));
+            Commands.either(
+                Commands.runOnce(shooter::stopFlywheel, shooter),
+                Commands.runOnce(shooter::startFlywheel, shooter),
+                shooter::isFlywheelRunning));
   }
 
   /**

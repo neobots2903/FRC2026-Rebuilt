@@ -15,6 +15,8 @@ public interface shooterIO {
 
     public double flywheelVelocity = 0.0;
     public double flywheelCurrent = 0.0;
+    public double flywheelAppliedVolts = 0.0;
+    public double flywheelSetpointRPM = 0.0;
   }
 
   public default void setFlywheelVelocity(double velocityRPM) {}
@@ -24,10 +26,8 @@ public interface shooterIO {
   public default void setHoodPosition(double positionDegrees) {}
 
   public default void setRotationPosition(double positionDegrees) {}
-  // !Set flywheel velocity?
+
   public default void stop() {}
 
   public default void resetEncoders() {}
-
-  public default void setBrakeMode(boolean enabled) {}
 }

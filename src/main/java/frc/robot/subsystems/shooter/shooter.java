@@ -17,6 +17,8 @@ public class shooter extends SubsystemBase {
     Logger.processInputs("Shooter/Shooter", inputs);
     Logger.recordOutput("Shooter/FlywheelVelocity", inputs.flywheelVelocity);
     Logger.recordOutput("Shooter/FlywheelCurrent", inputs.flywheelCurrent);
+    Logger.recordOutput("Shooter/FlywheelAppliedVolts", inputs.flywheelAppliedVolts);
+    Logger.recordOutput("Shooter/FlywheelSetpointRPM", inputs.flywheelSetpointRPM);
     Logger.recordOutput("Shooter/HoodPositionDegrees", inputs.hoodPositionDegrees);
     Logger.recordOutput("Shooter/HoodAppliedCurrentAmps", inputs.hoodAppliedCurrentAmps);
     Logger.recordOutput("Shooter/HoodAppliedVolts", inputs.hoodAppliedVolts);
@@ -41,5 +43,13 @@ public class shooter extends SubsystemBase {
 
   public double getFlywheelVelocity() {
     return inputs.flywheelVelocity;
+  }
+
+  public boolean isFlywheelRunning() {
+    if (inputs.flywheelSetpointRPM == 0.0) {
+      return false;
+    } else {
+      return true;
+    }
   }
 }

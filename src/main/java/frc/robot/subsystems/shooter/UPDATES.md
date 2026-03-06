@@ -10,3 +10,7 @@ add code to the drive subsystem potentially to allow for aiming the robot itself
 ## Drive Subsystem
 
 After looking into it, we can probably use the "joystickDriveAtAngle" command to allow for aiming the robot. We can probably swap between that and the default drive command with a buttonn press in Robot Container.
+
+
+
+ToDo after 3/4: Go into robot container and make it so that shooter can stop. Also figure out current.
