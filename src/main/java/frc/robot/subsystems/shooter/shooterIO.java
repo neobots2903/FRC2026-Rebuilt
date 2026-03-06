@@ -7,7 +7,7 @@ public interface shooterIO {
   public static class shooterIOInputs {
     // flywheelMotor inputs
 
-    // hoodmotor inputs
+    // hoodMotor inputs
     public double hoodPositionDegrees = 0.0;
     public double hoodAppliedCurrentAmps = 0.0;
     public double hoodAppliedVolts = 0.0;

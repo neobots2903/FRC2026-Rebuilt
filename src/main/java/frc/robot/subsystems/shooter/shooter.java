@@ -52,4 +52,12 @@ public class shooter extends SubsystemBase {
       return true;
     }
   }
+
+  public void setHoodPosition(double positionDegrees) {
+    io.setHoodPosition(positionDegrees);
+  }
+
+  public double getHoodPosition() {
+    return inputs.hoodPositionDegrees;
+  }
 }

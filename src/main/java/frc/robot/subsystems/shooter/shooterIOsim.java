@@ -36,9 +36,7 @@ public class shooterIOsim implements shooterIO {
             LinearSystemId.createDCMotorSystem(
                 DCMotor.getNeo550(1), MOI, shooterConstants.kGearRatio),
             DCMotor.getNeo550(1));
-    hoodPID =
-        new PIDController(
-            shooterConstants.kHoodP, shooterConstants.kHoodI, shooterConstants.kHoodD);
+    hoodPID = new PIDController(0.03, 0.0, 0.01);
     hoodPID.setTolerance(shooterConstants.kHoodPositionTolerance);
   }
 

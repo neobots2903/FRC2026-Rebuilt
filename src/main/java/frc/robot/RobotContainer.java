@@ -31,6 +31,7 @@ import frc.robot.subsystems.intake.intakeIO;
 import frc.robot.subsystems.intake.intakeIOsim;
 import frc.robot.subsystems.intake.intakeIOsparkmax;
 import frc.robot.subsystems.shooter.shooter;
+import frc.robot.subsystems.shooter.shooterConstants;
 import frc.robot.subsystems.shooter.shooterIO;
 import frc.robot.subsystems.shooter.shooterIOreal;
 import frc.robot.subsystems.shooter.shooterIOsim;
@@ -249,6 +250,26 @@ public class RobotContainer {
                 Commands.runOnce(shooter::stopFlywheel, shooter),
                 Commands.runOnce(shooter::startFlywheel, shooter),
                 shooter::isFlywheelRunning));
+
+    operatorController
+        .leftTrigger()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  if (shooter.getHoodPosition() > shooterConstants.kMinHoodAngle) {
+                    shooter.setHoodPosition(shooter.getHoodPosition() - 5);
+                  }
+                }));
+
+    operatorController
+        .rightTrigger()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  if (shooter.getHoodPosition() < shooterConstants.kMaxHoodAngle) {
+                    shooter.setHoodPosition(shooter.getHoodPosition() + 5);
+                  }
+                }));
   }
 
   /**
