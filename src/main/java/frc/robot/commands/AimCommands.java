@@ -1,8 +1,12 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.shooter.ShooterKinematics;
+import frc.robot.subsystems.shooter.ShooterKinematics.ShooterSolution;
 import frc.robot.subsystems.shooter.shooter;
 import frc.robot.subsystems.shooter.shooterConstants;
 import java.util.function.Supplier;
@@ -13,9 +17,9 @@ public class AimCommands extends Command {
   private final Supplier<Pose2d> m_robotPose;
 
   public AimCommands(shooter shooter, Supplier<Pose2d> robotPose) {
-    // Use addRequirements() here to declare subsystem dependencies.
     m_shooter = shooter;
     m_robotPose = robotPose;
+    addRequirements(shooter);
   }
 
   @Override
@@ -23,14 +27,32 @@ public class AimCommands extends Command {
     // Code to run when the command is initially scheduled.
   }
 
+  // @Override
+  // public void execute() {
+  //   // Code to run repeatedly while the command is scheduled.
+  //   double optimalHoodAngleDeg =
+  //       ShooterKinematics.getOptimalHoodAngleDeg(
+  //           m_robotPose.get(), shooterConstants.TARGET_POSE_METERS.toTranslation2d());
+  //   m_shooter.setHoodPosition(optimalHoodAngleDeg);
+  //   m_shooter.startFlywheel();
+  // }
+
   @Override
   public void execute() {
-    // Code to run repeatedly while the command is scheduled.
-    double optimalHoodAngleDeg =
-        ShooterKinematics.getOptimalHoodAngleDeg(
-            m_robotPose.get(), shooterConstants.TARGET_POSE_METERS.toTranslation2d());
-    m_shooter.setHoodPosition(optimalHoodAngleDeg);
-    m_shooter.startFlywheel();
+    // Get a full solution: both hood angle AND flywheel RPM
+    ShooterSolution solution =
+        ShooterKinematics.getOptimalSolution(
+            m_robotPose.get(), ShooterKinematics.getTargetTowerPosition());
+
+    if (solution.isValid) {
+      // Set the hood to the computed angle
+      m_shooter.setHoodPosition(solution.hoodAngleDeg);
+      // Spin the flywheel to the computed RPM (not a fixed constant!)
+      m_shooter.startFlywheel(solution.motorRPM);
+    } else {
+      // Target is unreachable — stop shooting, park the hood
+      m_shooter.stopFlywheel();
+    }
   }
 
   @Override

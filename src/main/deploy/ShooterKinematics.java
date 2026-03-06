@@ -8,11 +8,12 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 
 /**
- * ============================================================================ STATIONARY SHOOTER
- * KINEMATICS (COMPLETED)
- * ============================================================================ Calculates the exact
- * turret angle and hood angle needed to hit the Hub based purely on our robot's odometry (Pose2d)
- * on the field.
+ * ============================================================================ ADVANCED SHOOTER
+ * KINEMATICS ============================================================================ Goal:
+ * Calculate the exact turret angle AND flywheel RPM needed to hit the Hub based on our robot's
+ * odometry (Pose2d) on the field. Unlike the old version which fixed RPM and only solved for angle,
+ * this version solves for BOTH — sweeping exit velocities from the minimum required up to the
+ * motor's maximum, picking the first valid (lowest-energy) solution.
  */
 public class ShooterKinematics {
 
@@ -20,33 +21,32 @@ public class ShooterKinematics {
   // 1. RAW MEASUREMENTS (Human Readable)
   // =========================================================================
 
-  // Toggle for our empirical Look-Up Table (LUT). Set to false until we tune on a real field!
+  // Toggle for our empirical Look-Up Table (LUT)
   public static final boolean ENABLE_EMPIRICAL_LUT = false;
 
-  // Field target (Meters) - UPDATE THESE to the real field hub coordinates!
-  private static final double TARGET_X_METERS = 10.0;
-  private static final double TARGET_Y_METERS = 10.0;
-  private static final double TARGET_Z_METERS =
-      3.0; // Changed from 10 to 3 meters (~10 ft) for a realistic FRC target
-
-  // Robot measurements (Inches) - UPDATE THESE from CAD
-  private static final double TURRET_OFFSET_X_IN = 10.0;
+  // Robot measurements (Inches)
+  private static final double TURRET_OFFSET_X_IN = 7.0;
   private static final double TURRET_OFFSET_Y_IN = 0.0;
-  private static final double SHOOTER_HEIGHT_IN = 16.0;
+  private static final double SHOOTER_HEIGHT_IN = 15.15;
   private static final double WHEEL_RADIUS_IN = 2.0;
 
   // Target Geometry (Inches & Degrees) - To prevent bounce-outs!
-  private static final double TARGET_DIAMETER_IN = 24.0;
-  private static final double MIN_DESCENT_ANGLE_DEG =
-      20.0; // Minimum downward angle to fit through the rim
+  private static final double TARGET_DIAMETER_IN = 11.76;
+  private static final double MIN_DESCENT_ANGLE_DEG = 20.0;
 
   // Motor & Limits
   public static final double IDEAL_MOTOR_RPM = 3000.0;
+  public static final double MAX_MOTOR_RPM = 6000.0;
   public static final double GEAR_REDUCTION = 1.0;
-  private static final double MIN_HOOD_ANGLE_DEG = 0.0;
+  private static final double MIN_HOOD_ANGLE_DEG = 20.0;
   private static final double MAX_HOOD_ANGLE_DEG = 75.0;
-  private static final double MIN_TURRET_ANGLE_DEG = -150.0;
-  private static final double MAX_TURRET_ANGLE_DEG = 150.0;
+  private static final double MIN_TURRET_ANGLE_DEG = -270.0;
+  private static final double MAX_TURRET_ANGLE_DEG = 270.0;
+
+  // Velocity sweep parameters
+  private static final double MIN_EXIT_VELOCITY_MPS = 5.0;
+  private static final double VELOCITY_STEP_MPS = 0.5;
+  private static final double IDEAL_LAUNCH_ANGLE_DEG = 45.0;
 
   // =========================================================================
   // 2. PHYSICS CONSTANTS (The Metric Zone)
@@ -54,13 +54,12 @@ public class ShooterKinematics {
 
   private static final double GRAVITY = 9.81;
 
-  private static final Translation3d TARGET_POSE_METERS =
-      new Translation3d(TARGET_X_METERS, TARGET_Y_METERS, TARGET_Z_METERS);
+  private static final Translation3d TARGET_POSE_METERS = shooterConstants.TARGET_POSE_METERS;
 
-  // Unit Conversions: Human inches -> Physics meters
   private static final Translation2d TURRET_OFFSET_METERS =
       new Translation2d(
           Units.inchesToMeters(TURRET_OFFSET_X_IN), Units.inchesToMeters(TURRET_OFFSET_Y_IN));
+
   private static final double SHOOTER_HEIGHT_METERS = Units.inchesToMeters(SHOOTER_HEIGHT_IN);
   private static final double WHEEL_RADIUS_METERS = Units.inchesToMeters(WHEEL_RADIUS_IN);
 
@@ -69,120 +68,259 @@ public class ShooterKinematics {
   // =========================================================================
 
   private static final InterpolatingDoubleTreeMap HOOD_ANGLE_MAP = new InterpolatingDoubleTreeMap();
+  private static final InterpolatingDoubleTreeMap FLYWHEEL_RPM_MAP =
+      new InterpolatingDoubleTreeMap();
 
   static {
-    // DUMMY DATA: Replace when you test the real robot!
+    // We will put real field data here later when the shooter is done.
+    // Both maps are keyed by distance (meters).
     // HOOD_ANGLE_MAP.put(distanceMeters, angleDegrees);
-    // HOOD_ANGLE_MAP.put(2.0, 35.0);
+    // FLYWHEEL_RPM_MAP.put(distanceMeters, motorRPM);
+    //
+    // Example (uncomment and fill with real data):
+    // HOOD_ANGLE_MAP.put(2.0, 55.0);    FLYWHEEL_RPM_MAP.put(2.0, 2500.0);
+    // HOOD_ANGLE_MAP.put(3.0, 45.0);    FLYWHEEL_RPM_MAP.put(3.0, 3000.0);
+    // HOOD_ANGLE_MAP.put(5.0, 38.0);    FLYWHEEL_RPM_MAP.put(5.0, 3800.0);
+    // HOOD_ANGLE_MAP.put(7.0, 33.0);    FLYWHEEL_RPM_MAP.put(7.0, 4500.0);
+    // HOOD_ANGLE_MAP.put(10.0, 28.0);   FLYWHEEL_RPM_MAP.put(10.0, 5500.0);
   }
 
   // =========================================================================
-  // 4. HELPER MATH METHODS
+  // 4. SHOOTER SOLUTION CLASS
   // =========================================================================
 
-  /** Calculates the exit velocity of the game piece in meters per second. */
-  public static double getExitVelocityMetersPerSec() {
-    double flywheelRpm = IDEAL_MOTOR_RPM / GEAR_REDUCTION;
-    double wheelCircumference = 2 * Math.PI * WHEEL_RADIUS_METERS;
+  /** Holds a complete shooter solution: both the hood angle and flywheel RPM. */
+  public static class ShooterSolution {
+    public final double hoodAngleDeg;
+    public final double motorRPM;
+    public final boolean isValid;
 
-    // Convert RPM to Surface Speed (m/s)
-    double surfaceSpeedMetersPerSec = (flywheelRpm / 60.0) * wheelCircumference;
+    public ShooterSolution(double hoodAngleDeg, double motorRPM, boolean isValid) {
+      this.hoodAngleDeg = hoodAngleDeg;
+      this.motorRPM = motorRPM;
+      this.isValid = isValid;
+    }
 
-    // In a single-wheel hooded shooter, ball exits at ~half the surface speed
+    public static final ShooterSolution INVALID = new ShooterSolution(0, 0, false);
+  }
+
+  // =========================================================================
+  // 5. HELPER MATH METHODS
+  // =========================================================================
+
+  /**
+   * Calculates the MAXIMUM exit velocity of the game piece at full motor power.
+   *
+   * <p>HINT 1: Find the actual wheel RPM: MAX_MOTOR_RPM / GEAR_REDUCTION. HINT 2: Convert RPM to
+   * revolutions per SECOND by dividing by 60. HINT 3: Multiply by wheel circumference (2 * π *
+   * radius) to get surface speed in m/s. HINT 4: Divide by 2 because the ball rolls against a
+   * stationary hood.
+   */
+  public static double getMaxExitVelocityMetersPerSec() {
+    double realRPM = MAX_MOTOR_RPM / GEAR_REDUCTION;
+    double wheelCircumference = 2 * WHEEL_RADIUS_METERS * Math.PI;
+    double surfaceSpeedMetersPerSec = (realRPM / 60.0) * wheelCircumference;
     return surfaceSpeedMetersPerSec / 2.0;
   }
 
-  /** Finds the exact position of the turret on the field, accounting for robot rotation. */
+  /**
+   * Converts an exit velocity (m/s) BACK to the motor RPM needed to achieve it. This is the inverse
+   * of getMaxExitVelocityMetersPerSec().
+   *
+   * <p>HINT 1: The exit velocity is half the surface speed, so: surfaceSpeed = exitVelocity * 2
+   * HINT 2: surfaceSpeed = (wheelRPM / 60) * wheelCircumference, so solve for wheelRPM. HINT 3:
+   * motorRPM = wheelRPM * GEAR_REDUCTION.
+   */
+  public static double exitVelocityToMotorRPM(double exitVelocityMps) {
+    double surfaceSpeed = exitVelocityMps * 2.0;
+    double wheelCircumference = 2 * WHEEL_RADIUS_METERS * Math.PI;
+    double wheelRPM = (surfaceSpeed / wheelCircumference) * 60.0;
+    return wheelRPM * GEAR_REDUCTION;
+  }
+
+  /**
+   * Computes the MINIMUM exit velocity needed to reach a target at (distance, deltaZ).
+   *
+   * <p>From the quadratic discriminant ≥ 0 condition, we derive: v_min = sqrt(g * (deltaZ +
+   * sqrt(deltaZ² + distance²)))
+   *
+   * <p>HINT: This is a direct formula — just plug in the values!
+   */
+  public static double getMinExitVelocity(double distance, double deltaZ) {
+    return Math.sqrt(GRAVITY * (deltaZ + Math.sqrt(deltaZ * deltaZ + distance * distance)));
+  }
+
+  /** Finds where the turret actually is on the field. */
   public static Translation2d getTurretFieldPosition(Pose2d robotPose) {
-    // Rotate the offset by the robot's heading, then add it to the robot's coordinates
-    Translation2d rotatedOffset = TURRET_OFFSET_METERS.rotateBy(robotPose.getRotation());
-    return robotPose.getTranslation().plus(rotatedOffset);
+    Translation2d turretRotation = TURRET_OFFSET_METERS.rotateBy(robotPose.getRotation());
+    Translation2d turretPosition = robotPose.getTranslation().plus(turretRotation);
+    return turretPosition;
   }
 
-  /** Finds the 2D horizontal distance from the turret to the target. */
-  public static double getDistanceToTargetMeters(Pose2d robotPose) {
+  /** Calculates distance from the turret to the target. */
+  public static double getDistanceToTargetMeters(Pose2d robotPose, Translation2d targetPos) {
     Translation2d turretPos = getTurretFieldPosition(robotPose);
-    return turretPos.getDistance(
-        new Translation2d(TARGET_POSE_METERS.getX(), TARGET_POSE_METERS.getY()));
+    return turretPos.getDistance(targetPos);
   }
 
   // =========================================================================
-  // 5. MAIN CONTROL METHODS
+  // 6. TURRET AIMING
   // =========================================================================
 
-  /** Calculates the required turret angle to face the target. */
   public static double calculateTurretAngleDeg(Pose2d robotPose) {
-    Translation2d turretPos = getTurretFieldPosition(robotPose);
-
-    double deltaX = TARGET_POSE_METERS.getX() - turretPos.getX();
-    double deltaY = TARGET_POSE_METERS.getY() - turretPos.getY();
-
-    // Find the absolute field angle to the target
-    Rotation2d fieldAngleToTarget = new Rotation2d(Math.atan2(deltaY, deltaX));
-
-    // Subtract robot rotation to make the angle relative to the chassis
-    Rotation2d turretTargetRotation = fieldAngleToTarget.minus(robotPose.getRotation());
-    double targetDegrees = turretTargetRotation.getDegrees();
-
-    // Safety Check: Can our mechanism actually spin this far?
-    if (targetDegrees < MIN_TURRET_ANGLE_DEG || targetDegrees > MAX_TURRET_ANGLE_DEG) {
-      return Double.NaN; // Blind spot!
+    Translation2d turretPosition = getTurretFieldPosition(robotPose);
+    double deltaX = shooterConstants.TARGET_X_METERS - turretPosition.getX();
+    double deltaY = shooterConstants.TARGET_Y_METERS - turretPosition.getY();
+    Rotation2d fieldTargetAngle = new Rotation2d(Math.atan2(deltaY, deltaX));
+    if (fieldTargetAngle.getDegrees() < MIN_TURRET_ANGLE_DEG
+        || fieldTargetAngle.getDegrees() > MAX_TURRET_ANGLE_DEG) {
+      return Double.NaN;
     }
-
-    return targetDegrees;
+    return fieldTargetAngle.getDegrees();
   }
 
-  /** Physics time. Uses the Projectile Motion Quadratic Equation to find the launch angle. */
-  public static double getPhysicsHoodAngleDeg(Pose2d robotPose) {
-    double distance = getDistanceToTargetMeters(robotPose);
-    double deltaZ = TARGET_POSE_METERS.getZ() - SHOOTER_HEIGHT_METERS;
-    double exitVelocity = getExitVelocityMetersPerSec();
+  // =========================================================================
+  // 7. HOOD ANGLE SOLVER (for a given velocity)
+  // =========================================================================
 
-    // The gravity constant component: k = (g * d^2) / (2 * v^2)
+  /**
+   * Solves the projectile quadratic for hood angle at a SPECIFIC exit velocity.
+   *
+   * <p>The equation is: k*tan²(θ) - d*tan(θ) + (Δz + k) = 0 where k = (g * d²) / (2 * v²)
+   *
+   * <p>HINT 1: Calculate k = (GRAVITY * distance²) / (2 * exitVelocity²) HINT 2: Set up the
+   * quadratic: A = k, B = -distance, C = deltaZ + k HINT 3: Compute discriminant = B² - 4*A*C. If <
+   * 0, return Double.NaN. HINT 4: Find both angles using atan(quadratic formula). HINT 5: Check
+   * each angle against hood limits AND isTrajectoryValidForTopOpening(). HINT 6: If both valid,
+   * return the one CLOSEST to IDEAL_LAUNCH_ANGLE_DEG (45°). HINT 7: If only one valid, return that
+   * one. If neither, return Double.NaN.
+   */
+  private static double solveHoodAngleForVelocity(
+      double exitVelocity, double distance, double deltaZ) {
+
+    // Step 1: Calculate k
     double k = (GRAVITY * Math.pow(distance, 2)) / (2 * Math.pow(exitVelocity, 2));
 
-    // Quadratic coefficients: A*tan^2(theta) + B*tan(theta) + C = 0
-    double a = k;
-    double b = -distance;
-    double c = deltaZ + k;
+    // Step 2: Set up B and C (A = k)
+    double B = -distance;
+    double C = deltaZ + k;
 
-    double discriminant = Math.pow(b, 2) - (4 * a * c);
-
-    // If discriminant is negative, the shot is physically impossible at this velocity
+    // Step 3: Calculate discriminant
+    double discriminant = B * B - 4 * k * C;
     if (discriminant < 0) {
       return Double.NaN;
     }
 
-    // Calculate both possible tangent values
-    double tanTheta1 = (-b + Math.sqrt(discriminant)) / (2 * a);
-    double tanTheta2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+    // Step 4: Find tanTheta1 and tanTheta2 using the quadratic formula
+    double sqrtDisc = Math.sqrt(discriminant);
+    double tanTheta1 = (-B + sqrtDisc) / (2 * k);
+    double tanTheta2 = (-B - sqrtDisc) / (2 * k);
 
-    // Convert to degrees
+    // Step 5: Convert to degrees
     double angle1 = Math.toDegrees(Math.atan(tanTheta1));
     double angle2 = Math.toDegrees(Math.atan(tanTheta2));
 
-    // Validate against hood limits AND the bounce-out check
+    // Step 6: Validate both angles (range check + trajectory check)
     boolean angle1Valid =
         angle1 >= MIN_HOOD_ANGLE_DEG
             && angle1 <= MAX_HOOD_ANGLE_DEG
             && isTrajectoryValidForTopOpening(angle1, distance, exitVelocity);
-
     boolean angle2Valid =
         angle2 >= MIN_HOOD_ANGLE_DEG
             && angle2 <= MAX_HOOD_ANGLE_DEG
             && isTrajectoryValidForTopOpening(angle2, distance, exitVelocity);
 
-    // FRC Strategy: Pick the flatter shot (smaller angle) IF it's valid
+    // Step 7: Return the best valid angle, or Double.NaN
     if (angle1Valid && angle2Valid) {
-      return Math.min(angle1, angle2);
+      // Prefer the angle closest to 45° (optimal projectile angle)
+      double diff1 = Math.abs(angle1 - IDEAL_LAUNCH_ANGLE_DEG);
+      double diff2 = Math.abs(angle2 - IDEAL_LAUNCH_ANGLE_DEG);
+      return diff1 < diff2 ? angle1 : angle2;
     } else if (angle1Valid) {
       return angle1;
     } else if (angle2Valid) {
       return angle2;
+    } else {
+      return Double.NaN;
+    }
+  }
+
+  // =========================================================================
+  // 8. THE MAIN SOLVER — Sweeps velocity to find a solution
+  // =========================================================================
+
+  /**
+   * The main entry point. Sweeps exit velocities from the minimum required up to the motor's
+   * maximum, and returns the first (lowest-energy) valid ShooterSolution.
+   *
+   * <p>HINT 1: Use getDistanceToTargetMeters() and compute deltaZ. HINT 2: Use
+   * getMaxExitVelocityMetersPerSec() for the ceiling. HINT 3: Use getMinExitVelocity() for the
+   * floor. Clamp it to at least MIN_EXIT_VELOCITY_MPS. HINT 4: If minVelocity > maxVelocity, return
+   * ShooterSolution.INVALID (target unreachable). HINT 5: Loop from minVelocity to maxVelocity in
+   * steps of VELOCITY_STEP_MPS. HINT 6: At each step, call solveHoodAngleForVelocity(). If it
+   * returns a valid angle (not NaN): - Convert velocity to RPM with exitVelocityToMotorRPM() -
+   * Return new ShooterSolution(angle, rpm, true) HINT 7: After the loop, also try maxVelocity as a
+   * last resort. HINT 8: If nothing works, return ShooterSolution.INVALID.
+   */
+  public static ShooterSolution getShooterSolution(Pose2d robotPose, Translation2d targetPos) {
+    double distance = getDistanceToTargetMeters(robotPose, targetPos);
+    double deltaZ = shooterConstants.TARGET_Z_METERS - SHOOTER_HEIGHT_METERS;
+    double maxVelocity = getMaxExitVelocityMetersPerSec();
+    double minVelocity = getMinExitVelocity(distance, deltaZ);
+
+    // Clamp to motor limits
+    minVelocity = Math.max(minVelocity, MIN_EXIT_VELOCITY_MPS);
+
+    if (minVelocity > maxVelocity) {
+      // Target is unreachable even at full power
+      return ShooterSolution.INVALID;
     }
 
-    return Double.NaN; // No valid angles fit the criteria
+    // Search from minimum velocity upward in steps
+    // First valid solution = lowest energy = least wear, most accuracy
+    for (double v = minVelocity; v <= maxVelocity; v += VELOCITY_STEP_MPS) {
+      double angle = solveHoodAngleForVelocity(v, distance, deltaZ);
+      if (!Double.isNaN(angle)) {
+        double rpm = exitVelocityToMotorRPM(v);
+        return new ShooterSolution(angle, rpm, true);
+      }
+    }
+
+    // Try max velocity as a last resort (loop may have skipped it due to step size)
+    double angle = solveHoodAngleForVelocity(maxVelocity, distance, deltaZ);
+    if (!Double.isNaN(angle)) {
+      double rpm = exitVelocityToMotorRPM(maxVelocity);
+      return new ShooterSolution(angle, rpm, true);
+    }
+
+    return ShooterSolution.INVALID;
   }
+
+  // =========================================================================
+  // 9. PUBLIC API — What the rest of the robot calls
+  // =========================================================================
+
+  /**
+   * Returns a full ShooterSolution (angle + RPM). Uses the LUT if enabled, otherwise uses the
+   * physics solver.
+   *
+   * <p>HINT: If LUT is enabled and both maps are non-empty, use them. Otherwise, call
+   * getShooterSolution().
+   */
+  public static ShooterSolution getOptimalSolution(Pose2d robotPose, Translation2d targetPos) {
+    if (ENABLE_EMPIRICAL_LUT) {
+      double distance = getDistanceToTargetMeters(robotPose, targetPos);
+      double angle = HOOD_ANGLE_MAP.get(distance);
+      double rpm = FLYWHEEL_RPM_MAP.get(distance);
+      return new ShooterSolution(angle, rpm, true);
+    } else {
+      return getShooterSolution(robotPose, targetPos);
+    }
+  }
+
+  // =========================================================================
+  // 10. TRAJECTORY VALIDATION
+  // =========================================================================
 
   /**
    * Prevents the "Line-Drive Bounce-Out". Checks if a hood angle creates a shot that is falling
@@ -190,46 +328,14 @@ public class ShooterKinematics {
    */
   private static boolean isTrajectoryValidForTopOpening(
       double hoodAngleDeg, double distance, double exitVelocity) {
-    double angleRad = Math.toRadians(hoodAngleDeg);
-
-    // 1. Horizontal velocity (constant)
-    double horizontalVelocity = exitVelocity * Math.cos(angleRad);
-
-    // 2. Time of Flight (t = d / v_x)
-    double timeOfFlight = distance / horizontalVelocity;
-
-    // 3. Final vertical velocity (Vf = Vi - g*t)
-    double initialVerticalVelocity = exitVelocity * Math.sin(angleRad);
-    double finalVerticalVelocity = initialVerticalVelocity - (GRAVITY * timeOfFlight);
-
-    // If final vertical velocity is positive, it's still going UP when it hits the goal.
-    // Bounce-out!
-    if (finalVerticalVelocity > 0) {
+    double horizVelocity = exitVelocity * Math.cos(Math.toRadians(hoodAngleDeg));
+    double initVertiVelocity = exitVelocity * Math.sin(Math.toRadians(hoodAngleDeg));
+    double timeOfFlight = distance / horizVelocity;
+    double finalVertiVelocity = initVertiVelocity - GRAVITY * timeOfFlight;
+    if (finalVertiVelocity > 0) {
       return false;
     }
-
-    // 4. Calculate Entry Angle. We use absolute value because vy is negative (falling)
-    double entryAngleDeg =
-        Math.toDegrees(Math.abs(Math.atan2(finalVerticalVelocity, horizontalVelocity)));
-
-    // 5. Does the game piece enter steeply enough?
-    return entryAngleDeg >= MIN_DESCENT_ANGLE_DEG;
-  }
-
-  /** Decides whether to use the empirical LUT or the physics math. */
-  public static double getOptimalHoodAngleDeg(Pose2d robotPose) {
-    // Fallback Logic: Only use the map if the toggle is ON and the map actually has data.
-    if (ENABLE_EMPIRICAL_LUT && !HOOD_ANGLE_MAP.isEmpty()) {
-      double distance = getDistanceToTargetMeters(robotPose);
-      double targetAngle = HOOD_ANGLE_MAP.get(distance);
-
-      // Safety check against mechanism limits
-      if (targetAngle < MIN_HOOD_ANGLE_DEG || targetAngle > MAX_HOOD_ANGLE_DEG) {
-        return Double.NaN;
-      }
-      return targetAngle;
-    } else {
-      return getPhysicsHoodAngleDeg(robotPose);
-    }
+    double entryAngle = Math.toDegrees(Math.abs(Math.atan2(finalVertiVelocity, horizVelocity)));
+    return entryAngle >= MIN_DESCENT_ANGLE_DEG;
   }
 }

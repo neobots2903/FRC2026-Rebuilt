@@ -1,5 +1,6 @@
 package frc.robot.subsystems.shooter;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 
 public class shooterConstants {
@@ -26,11 +27,12 @@ public class shooterConstants {
 
   public static final double kTurretDegreesPerRotation = 1.0; // Placeholder
 
-  public static final double TARGET_X_METERS = 4.56;
-  public static final double TARGET_Y_METERS = 4.035;
-  public static final double TARGET_Z_METERS = 1.83;
-  public static final Translation3d TARGET_POSE_METERS =
-      new Translation3d(TARGET_X_METERS, TARGET_Y_METERS, TARGET_Z_METERS);
+  // Old
+  // public static final double TARGET_X_METERS = 4.56;
+  // public static final double TARGET_Y_METERS = 4.035;
+  // public static final double TARGET_Z_METERS = 1.83;
+  // public static final Translation3d TARGET_POSE_METERS =
+  //     new Translation3d(TARGET_X_METERS, TARGET_Y_METERS, TARGET_Z_METERS);
 
   // Mechanical Ratios
   public static final double kHoodDegreesPerRotation = 360.0 / 1.0; // Placeholder
@@ -44,5 +46,14 @@ public class shooterConstants {
   public static final double kFlywheelI = 0.1; // Placeholder
   public static final double kFlywheelD = 0.0; // Placeholder
 
-  // Peak Kraken Power = 3000 RPM
+  // Field-specific constants
+  public static final double FIELD_LENGTH = 16.54; // meters
+  public static final double FIELD_WIDTH = 8.21;   // meters
+  public static final double HUB_HEIGHT = 1.8288; // 72 inches in meters
+  
+  // Alliance-specific targets
+  public static final Translation2d BLUE_HUB_POSITION = new Translation2d(4.5, FIELD_WIDTH / 2);
+  public static final Translation2d RED_HUB_POSITION = new Translation2d(FIELD_LENGTH - 4.5, FIELD_WIDTH / 2);
+  public static final Translation2d BLUE_DRIVER_STATION = new Translation2d(0.5, FIELD_WIDTH / 2);
+  public static final Translation2d RED_DRIVER_STATION = new Translation2d(FIELD_LENGTH - 0.5, FIELD_WIDTH / 2);
 }
