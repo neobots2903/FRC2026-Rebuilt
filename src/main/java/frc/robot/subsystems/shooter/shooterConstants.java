@@ -35,7 +35,7 @@ public class shooterConstants {
   //     new Translation3d(TARGET_X_METERS, TARGET_Y_METERS, TARGET_Z_METERS);
 
   // Mechanical Ratios
-  public static final double kHoodGearRatio = 3.0; // Placeholder
+  public static final double kHoodGearRatio = 5.0;
   public static final double kHoodDegreesPerRotation = 360.0 / kHoodGearRatio;
   public static final double kFlywheelGearRatio = 1.0; // Placeholder
 
