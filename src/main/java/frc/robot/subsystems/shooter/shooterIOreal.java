@@ -54,7 +54,7 @@ public class shooterIOreal implements shooterIO {
     config.closedLoop.pid(
         shooterConstants.kHoodP, shooterConstants.kHoodI, shooterConstants.kHoodD); // Placeholder
     config.voltageCompensation(12.0); // Placeholder
-    config.encoder.positionConversionFactor(shooterConstants.kTurretDegreesPerRotation);
+    config.encoder.positionConversionFactor(shooterConstants.kHoodDegreesPerRotation);
     config.closedLoop.p(shooterConstants.kHoodP);
     config.closedLoop.i(shooterConstants.kHoodI);
     config.closedLoop.d(shooterConstants.kHoodD);
