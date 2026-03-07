@@ -15,14 +15,14 @@ public class shooter extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Shooter/Shooter", inputs);
-    Logger.recordOutput("Shooter/FlywheelVelocity", inputs.flywheelVelocity);
-    Logger.recordOutput("Shooter/FlywheelCurrent", inputs.flywheelCurrent);
-    Logger.recordOutput("Shooter/FlywheelAppliedVolts", inputs.flywheelAppliedVolts);
-    Logger.recordOutput("Shooter/FlywheelSetpointRPM", inputs.flywheelSetpointRPM);
-    Logger.recordOutput("Shooter/HoodPositionDegrees", inputs.hoodPositionDegrees);
-    Logger.recordOutput("Shooter/HoodAppliedCurrentAmps", inputs.hoodAppliedCurrentAmps);
-    Logger.recordOutput("Shooter/HoodPositionDegrees", inputs.hoodPositionDegrees);
-    Logger.recordOutput("Shooter/HoodAppliedVolts", inputs.hoodAppliedVolts);
+    Logger.recordOutput("Shooter/Flywheel/FlywheelVelocity", inputs.flywheelVelocity);
+    Logger.recordOutput("Shooter/Flywheel/FlywheelCurrent", inputs.flywheelCurrent);
+    Logger.recordOutput("Shooter/Flywheel/FlywheelAppliedVolts", inputs.flywheelAppliedVolts);
+    Logger.recordOutput("Shooter/Flywheel/FlywheelSetpointRPM", inputs.flywheelSetpointRPM);
+    Logger.recordOutput("Shooter/Hood/HoodPositionDegrees", inputs.hoodPositionDegrees);
+    Logger.recordOutput("Shooter/Hood/HoodAppliedCurrentAmps", inputs.hoodAppliedCurrentAmps);
+    Logger.recordOutput("Shooter/Hood/HoodPositionDegrees", inputs.hoodPositionDegrees);
+    Logger.recordOutput("Shooter/Hood/HoodAppliedVolts", inputs.hoodAppliedVolts);
   }
 
   // Controls the shooter:
