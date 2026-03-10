@@ -274,8 +274,10 @@ public class RobotContainer {
 
     operatorController.y().whileTrue(new AimCommands(shooter, drive::getPose));
     // TODO:
-    // Run this in parallel with 'joystickDriveAtAngle' to point the robot at the hub while shooting.
-    // You can probably get the angle to point towards using your turret angle code from ShooterKinematics since it's just an angle (needs to be modified slightly)
+    // Run this in parallel with 'joystickDriveAtAngle' to point the robot at the hub while
+    // shooting.
+    // You can probably get the angle to point towards using your turret angle code from
+    // ShooterKinematics since it's just an angle (needs to be modified slightly)
   }
 
   /**

@@ -17,6 +17,10 @@ public interface shooterIO {
     public double flywheelCurrent = 0.0;
     public double flywheelAppliedVolts = 0.0;
     public double flywheelSetpointRPM = 0.0;
+    public double flywheel2Velocity = 0.0;
+    public double flywheel2Current = 0.0;
+    public double flywheel2AppliedVolts = 0.0;
+    public double flywheel2SetpointRPM = 0.0;
   }
 
   public default void setFlywheelVelocity(double velocityRPM) {}

@@ -1,14 +1,10 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.shooter.ShooterKinematics;
 import frc.robot.subsystems.shooter.ShooterKinematics.ShooterSolution;
 import frc.robot.subsystems.shooter.shooter;
-import frc.robot.subsystems.shooter.shooterConstants;
 import java.util.function.Supplier;
 
 public class AimCommands extends Command {
@@ -42,7 +38,7 @@ public class AimCommands extends Command {
     // Get a full solution: both hood angle AND flywheel RPM
     ShooterSolution solution =
         ShooterKinematics.getOptimalSolution(
-            m_robotPose.get(), ShooterKinematics.getTargetTowerPosition());
+            m_robotPose.get(), ShooterKinematics.getTargetTowerPosition().toTranslation2d());
 
     if (solution.isValid) {
       // Set the hood to the computed angle
