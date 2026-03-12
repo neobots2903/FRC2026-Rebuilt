@@ -42,6 +42,7 @@ public class shooterConstants {
   public static final double kHoodGearRatio = 4.0;
   public static final double kHoodDegreesPerRotation = 360.0 / kHoodGearRatio;
   public static final double kFlywheelGearRatio = 1.0; // Placeholder
+  public static final double kIndexerGearRatio = 12.0;
 
   // PID Values
   public static final double kHoodP = 1.0; // Placeholder
