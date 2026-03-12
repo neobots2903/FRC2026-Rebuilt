@@ -30,7 +30,7 @@ public class ShooterKinematics {
   private static final double TURRET_OFFSET_X_IN = 7.0;
   private static final double TURRET_OFFSET_Y_IN = 0.0;
   private static final double SHOOTER_HEIGHT_IN = 15.15;
-  private static final double WHEEL_RADIUS_IN = 2.0;
+  private static final double WHEEL_RADIUS_IN = 3.0;
 
   // Target Geometry (Inches & Degrees) - To prevent bounce-outs!
   private static final double TARGET_DIAMETER_IN = 11.76;
@@ -219,22 +219,28 @@ public class ShooterKinematics {
     double tanTheta2 = (-B - Math.sqrt(discriminant)) / (2 * k);
     double angle1 = Math.toDegrees(Math.atan(tanTheta1));
     double angle2 = Math.toDegrees(Math.atan(tanTheta2));
+    double hoodAngle1 = 90 - angle1;
+    double hoodAngle2 = 90 - angle2;
     boolean angle1Valid =
-        angle1 >= MIN_HOOD_ANGLE_DEG
-            && angle1 <= MAX_HOOD_ANGLE_DEG
+        hoodAngle1 >= MIN_HOOD_ANGLE_DEG
+            && hoodAngle1 <= MAX_HOOD_ANGLE_DEG
             && isTrajectoryValidForTopOpening(angle1, distance, exitVelocity);
     boolean angle2Valid =
-        angle2 >= MIN_HOOD_ANGLE_DEG
-            && angle2 <= MAX_HOOD_ANGLE_DEG
+        hoodAngle2 >= MIN_HOOD_ANGLE_DEG
+            && hoodAngle2 <= MAX_HOOD_ANGLE_DEG
             && isTrajectoryValidForTopOpening(angle2, distance, exitVelocity);
     if (angle1Valid && angle2Valid) {
-      angle1 = Math.abs(angle1 - IDEAL_LAUNCH_ANGLE_DEG);
-      angle2 = Math.abs(angle2 - IDEAL_LAUNCH_ANGLE_DEG);
-      return Math.min(angle1, angle2);
+      double angle1Diff = Math.abs(angle1 - IDEAL_LAUNCH_ANGLE_DEG);
+      double angle2Diff = Math.abs(angle2 - IDEAL_LAUNCH_ANGLE_DEG);
+      if (Math.min(angle1Diff, angle2Diff) == angle1Diff) {
+        return hoodAngle1;
+      } else {
+        return hoodAngle2;
+      }
     } else if (angle1Valid) {
-      return angle1;
+      return hoodAngle1;
     } else if (angle2Valid) {
-      return angle2;
+      return hoodAngle2;
     } else {
       return Double.NaN;
     }

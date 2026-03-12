@@ -272,7 +272,7 @@ public class RobotContainer {
                   }
                 }));
 
-    operatorController.y().whileTrue(new AimCommands(shooter, drive::getPose));
+    driverController.y().whileTrue(new AimCommands(shooter, drive::getPose));
     // TODO:
     // Run this in parallel with 'joystickDriveAtAngle' to point the robot at the hub while
     // shooting.
