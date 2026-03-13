@@ -30,7 +30,6 @@ public class intake extends SubsystemBase {
     // Logs pretty much everything
     Logger.processInputs("Intake/Intake", inputs);
     Logger.recordOutput("Intake/PivotPositionDegrees", inputs.pivotPositionDegrees);
-    Logger.recordOutput("Intake/PivotPositionDegrees", inputs.pivotPositionDegrees);
     Logger.recordOutput("Intake/PivotCurrentAmps", inputs.pivotAppliedCurrentAmps);
     Logger.recordOutput("Intake/PivotAppliedVolts", inputs.pivotAppliedVolts);
     Logger.recordOutput("Intake/IntakeCurrentAmps", inputs.intakeAppliedCurrentAmps);

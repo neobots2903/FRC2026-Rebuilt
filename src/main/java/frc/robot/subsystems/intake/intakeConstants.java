@@ -2,11 +2,11 @@ package frc.robot.subsystems.intake;
 
 public class intakeConstants {
   // Motor IDs
-  public static final int kPivotMotorId = 9;
-  public static final int kIntakeMotorId = 10;
+  public static final int kPivotMotorId = 31;
+  public static final int kIntakeMotorId = 30;
   // Positions (in degrees)
   public static final double kInPosition = 0.0;
-  public static final double kOutPosition = 200.0;
+  public static final double kOutPosition = 30.0;
   public static final double kMidPosition = 120;
   // Speeds
   public static final double kIntakeVoltage = 8.0;
@@ -22,8 +22,8 @@ public class intakeConstants {
   // Tolerances
   public static final double kPivotPositionTolerance = 2.0; // In degrees
   // Mechanical configurations
-  public static final double kPivotGearRatio = 1.0;
+  public static final double kPivotGearRatio = 45.0;
   public static final double kIntakeGearRatio = 1.0;
   // Conversion factors
-  public static final double kPivotDegreesPerRotation = 360.0 / kPivotGearRatio;
+  public static final double kPivotDegreesPerRotation = 360.0 * kPivotGearRatio;
 }

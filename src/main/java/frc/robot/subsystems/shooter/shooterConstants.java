@@ -4,11 +4,11 @@ import edu.wpi.first.math.geometry.Translation3d;
 
 public class shooterConstants {
   // Motor IDs
-  public static final int kFlywheelMotorID = 11;
-  public static final int kFlywheelMotor2ID = 12;
-  public static final int kHoodMotorID = 13;
+  public static final int kFlywheelMotorID = 40;
+  public static final int kFlywheelMotor2ID = 41;
+  public static final int kHoodMotorID = 32;
   public static final int kRotationMotorID = 14;
-  public static final int kIndexerMotorID = 15;
+  public static final int kIndexerMotorID = 33;
 
   // Flywheel RPM
   public static final int ShooterRPM = 3000; // Placeholder

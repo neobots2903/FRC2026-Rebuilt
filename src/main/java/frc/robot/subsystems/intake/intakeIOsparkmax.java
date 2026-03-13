@@ -26,8 +26,6 @@ public class intakeIOsparkmax implements intakeIO {
     // intakeConstants does not exist yet
     // Initializes the pivot motor
     pivotMotor = new SparkMax(intakeConstants.kPivotMotorId, MotorType.kBrushless);
-    pivotEncoder = pivotMotor.getEncoder();
-    pivotPID = pivotMotor.getClosedLoopController();
     // Initializes the intake motor
     intakeMotor = new SparkMax(intakeConstants.kIntakeMotorId, MotorType.kBrushless);
     // Configures both motors
@@ -35,6 +33,9 @@ public class intakeIOsparkmax implements intakeIO {
         configurePivotMotor(), ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     intakeMotor.configure(
         configureIntakeMotor(), ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    pivotEncoder = pivotMotor.getEncoder();
+    pivotPID = pivotMotor.getClosedLoopController();
   }
   // Configures the pivot motor
   private SparkMaxConfig configurePivotMotor() {
