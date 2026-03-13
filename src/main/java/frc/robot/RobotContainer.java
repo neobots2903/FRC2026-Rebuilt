@@ -45,7 +45,6 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import java.util.logging.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -248,11 +247,10 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  Logger.getLogger("Intake").info("Current pivot angle: " + intake.getPivotAngle());
-                  if (intake.getPivotAngle() > 8) {
+                  if (intake.getPivotAngle() > 50) {
                     intake.setPivotAngle(0);
-                  } else if (intake.getPivotAngle() < 8) {
-                    intake.setPivotAngle(14);
+                  } else if (intake.getPivotAngle() < 50) {
+                    intake.setPivotAngle(100);
                   }
                 }));
 

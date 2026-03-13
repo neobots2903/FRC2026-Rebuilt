@@ -6,17 +6,17 @@ public class intakeConstants {
   public static final int kIntakeMotorId = 30;
   // Positions (in degrees)
   public static final double kInPosition = 0.0;
-  public static final double kOutPosition = 30.0;
-  public static final double kMidPosition = 120;
+  public static final double kOutPosition = 100.0;
+  public static final double kMidPosition = 50.0;
   // Speeds
-  public static final double kIntakeVoltage = 8.0;
+  public static final double kIntakeVoltage = 7.0;
   public static final double kEjectVoltage = -4.0;
   // Current limits
   public static final int kPivotCurrentLimit = 30;
   public static final int kIntakeCurrentLimit = 20;
   public static final double kIntakeStallCurrent = 15.0;
   // PID values
-  public static final double kPivotP = 0.2;
+  public static final double kPivotP = 0.15;
   public static final double kPivotI = 0.0;
   public static final double kPivotD = 0.05;
   // Tolerances
@@ -25,5 +25,5 @@ public class intakeConstants {
   public static final double kPivotGearRatio = 45.0;
   public static final double kIntakeGearRatio = 1.0;
   // Conversion factors
-  public static final double kPivotDegreesPerRotation = 360.0 * kPivotGearRatio;
+  public static final double kPivotDegreesPerRotation = 360.0 / kPivotGearRatio;
 }

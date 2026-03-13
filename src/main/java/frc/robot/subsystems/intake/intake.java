@@ -21,7 +21,7 @@ public class intake extends SubsystemBase {
 
   public intake(intakeIO io) {
     this.io = io;
-    io.setBrakeMode(true);
+    // io.setBrakeMode(true);
   }
 
   @Override

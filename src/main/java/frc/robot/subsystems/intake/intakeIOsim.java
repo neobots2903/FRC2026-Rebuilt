@@ -31,9 +31,7 @@ public class intakeIOsim implements intakeIO {
             LinearSystemId.createDCMotorSystem(
                 DCMotor.getVex775Pro(1), MOI, intakeConstants.kIntakeGearRatio),
             DCMotor.getVex775Pro(1));
-    pivotPID =
-        new PIDController(
-            intakeConstants.kPivotP, intakeConstants.kPivotI, intakeConstants.kPivotD);
+    pivotPID = new PIDController(1, intakeConstants.kPivotI, intakeConstants.kPivotD);
     pivotPID.setTolerance(intakeConstants.kPivotPositionTolerance);
   }
 
