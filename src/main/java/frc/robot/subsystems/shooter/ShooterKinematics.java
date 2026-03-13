@@ -188,6 +188,19 @@ public class ShooterKinematics {
     return fieldTargetAngle.getDegrees();
   }
 
+  public static Rotation2d calculateTurretAngleRotation(Pose2d robotPose) {
+    Translation2d turretPosition = getTurretFieldPosition(robotPose);
+    Translation3d target = getTargetTowerPosition();
+    double deltaX = target.getX() - turretPosition.getX();
+    double deltaY = target.getY() - turretPosition.getY();
+    Rotation2d fieldTargetAngle = new Rotation2d(Math.atan2(deltaY, deltaX));
+    if (fieldTargetAngle.getDegrees() < MIN_TURRET_ANGLE_DEG
+        || fieldTargetAngle.getDegrees() > MAX_TURRET_ANGLE_DEG) {
+      return new Rotation2d(Double.NaN, Double.NaN);
+    }
+    return fieldTargetAngle;
+  }
+
   // =========================================================================
   // 7. HOOD ANGLE SOLVER (for a given velocity)
   // =========================================================================

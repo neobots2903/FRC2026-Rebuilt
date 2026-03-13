@@ -31,6 +31,11 @@ import frc.robot.subsystems.intake.intake;
 import frc.robot.subsystems.intake.intakeIO;
 import frc.robot.subsystems.intake.intakeIOsim;
 import frc.robot.subsystems.intake.intakeIOsparkmax;
+import frc.robot.subsystems.shooter.ShooterKinematics;
+import frc.robot.subsystems.shooter.indexer;
+import frc.robot.subsystems.shooter.indexerIO;
+import frc.robot.subsystems.shooter.indexerIOreal;
+import frc.robot.subsystems.shooter.indexerIOsim;
 import frc.robot.subsystems.shooter.shooter;
 import frc.robot.subsystems.shooter.shooterConstants;
 import frc.robot.subsystems.shooter.shooterIO;
@@ -54,6 +59,7 @@ public class RobotContainer {
   private final Drive drive;
   private final Vision vision;
   private final shooter shooter;
+  private final indexer indexer;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -111,6 +117,8 @@ public class RobotContainer {
 
         shooter = new shooter(new shooterIOreal());
 
+        indexer = new indexer(new indexerIOreal());
+
         break;
 
       case SIM:
@@ -133,6 +141,8 @@ public class RobotContainer {
 
         shooter = new shooter(new shooterIOsim());
 
+        indexer = new indexer(new indexerIOsim());
+
         break;
 
       default:
@@ -149,6 +159,7 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         intake = new intake(new intakeIO() {});
         shooter = new shooter(new shooterIO() {});
+        indexer = new indexer(new indexerIO() {});
         break;
     }
 
@@ -272,7 +283,28 @@ public class RobotContainer {
                   }
                 }));
 
-    driverController.y().whileTrue(new AimCommands(shooter, drive::getPose));
+    operatorController
+        .y()
+        .whileTrue(
+            Commands.parallel(
+                new AimCommands(shooter, drive::getPose),
+                DriveCommands.joystickDriveAtAngle(
+                    drive,
+                    () -> -driverController.getLeftY(),
+                    () -> -driverController.getLeftX(),
+                    () -> ShooterKinematics.calculateTurretAngleRotation(drive.getPose()))));
+
+    operatorController
+        .leftBumper()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  if (!indexer.isIndexerRunning()) {
+                    indexer.startIndexer();
+                  } else if (indexer.isIndexerRunning()) {
+                    indexer.stopIndexer();
+                  }
+                }));
     // TODO:
     // Run this in parallel with 'joystickDriveAtAngle' to point the robot at the hub while
     // shooting.

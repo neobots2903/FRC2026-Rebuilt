@@ -49,7 +49,7 @@ public class intake extends SubsystemBase {
   }
   // Determines if the intake is running
   public boolean isIntakeRunning() {
-    return inputs.intakeAppliedCurrentAmps > 0.1;
+    return inputs.intakeAppliedVolts > 0.1;
   }
 
   // Controls the pivot:

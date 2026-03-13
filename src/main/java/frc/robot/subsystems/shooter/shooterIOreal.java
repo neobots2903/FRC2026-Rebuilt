@@ -32,7 +32,7 @@ public class shooterIOreal implements shooterIO {
     flywheelMotor = new TalonFX(shooterConstants.kFlywheelMotorID);
     flywheelMotor.getConfigurator().apply(configureFlywheelMotor());
     flywheelMotor2 = new TalonFX(shooterConstants.kFlywheelMotor2ID);
-    flywheelMotor2.getConfigurator().apply(configureFlywheelMotor());
+    // flywheelMotor2.getConfigurator().apply(configureFlywheelMotor());
     flywheelMotor2.setControl(
         new Follower(flywheelMotor2.getDeviceID(), MotorAlignmentValue.Opposed));
     hoodMotor = new SparkMax(shooterConstants.kHoodMotorID, SparkLowLevel.MotorType.kBrushless);

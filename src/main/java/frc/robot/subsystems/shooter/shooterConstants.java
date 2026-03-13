@@ -31,6 +31,8 @@ public class shooterConstants {
 
   public static final double kTurretDegreesPerRotation = 1.0; // Placeholder
 
+  public static final double kIndexerVoltage = 8.0;
+
   // Old
   // public static final double TARGET_X_METERS = 4.56;
   // public static final double TARGET_Y_METERS = 4.035;
@@ -54,9 +56,6 @@ public class shooterConstants {
   public static final double kFlywheel2P = 1.0;
   public static final double kFlywheel2I = 0.1;
   public static final double kFlywheel2D = 0.0;
-  public static final double kIndexerP = 0.0;
-  public static final double kIndexerI = 0.0;
-  public static final double kIndexerD = 0.0;
 
   // Field-specific constants
   public static final double FIELD_LENGTH = 16.54; // meters
