@@ -11,18 +11,18 @@ public class shooterConstants {
   public static final int kIndexerMotorID = 33;
 
   // Flywheel RPM
-  public static final int ShooterRPM = 3000; // Placeholder
+  public static final int ShooterRPM = 2000; // Placeholder
   // Angles (in degrees)
-  public static final int kHoodAngleBuffer = 2;
-  public static final int kMinHoodAngle = 30 - kHoodAngleBuffer; // Placeholder
-  public static final int kMaxHoodAngle = 65 + kHoodAngleBuffer; // Placeholder
+  public static final int kHoodAngleOffset = 30;
+  public static final int kMinHoodAngle = 30; // Placeholder
+  public static final int kMaxHoodAngle = 65; // Placeholder
 
   public static final int kMinRotationAngle = 0; // Placeholder
   public static final int kMaxRotationAngle = 0; // Placeholder
 
   public static final double kFeedForward = 0.5; // Placeholder
 
-  public static final int kCurrentLimit = 40; // Placeholder
+  public static final int kCurrentLimit = 5; // Placeholder
 
   public static final double kGearRatio = 1.0;
 
@@ -41,21 +41,18 @@ public class shooterConstants {
   //     new Translation3d(TARGET_X_METERS, TARGET_Y_METERS, TARGET_Z_METERS);
 
   // Mechanical Ratios
-  public static final double kHoodGearRatio = 4.0;
+  public static final double kHoodGearRatio = 20.0;
   public static final double kHoodDegreesPerRotation = 360.0 / kHoodGearRatio;
   public static final double kFlywheelGearRatio = 1.0; // Placeholder
   public static final double kIndexerGearRatio = 12.0;
 
   // PID Values
-  public static final double kHoodP = 1.0; // Placeholder
-  public static final double kHoodI = 0.1; // Placeholder
+  public static final double kHoodP = 0.2; // Placeholder
+  public static final double kHoodI = 0.0; // Placeholder
   public static final double kHoodD = 0.0; // Placeholder
   public static final double kFlywheelP = 1.0; // Placeholder
   public static final double kFlywheelI = 0.1; // Placeholder
   public static final double kFlywheelD = 0.0; // Placeholder
-  public static final double kFlywheel2P = 1.0;
-  public static final double kFlywheel2I = 0.1;
-  public static final double kFlywheel2D = 0.0;
 
   // Field-specific constants
   public static final double FIELD_LENGTH = 16.54; // meters

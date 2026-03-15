@@ -43,7 +43,7 @@ import frc.robot.subsystems.shooter.shooterIOreal;
 import frc.robot.subsystems.shooter.shooterIOsim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -104,9 +104,7 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         vision =
             new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOLimelight(camera0Name, drive::getRotation),
-                new VisionIOLimelight(camera1Name, drive::getRotation));
+                drive::addVisionMeasurement, new VisionIOPhotonVision(camera0Name, robotToCamera0));
         // vision =
         // new Vision(
         // demoDrive::addVisionMeasurement,
@@ -134,7 +132,6 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
 
         intake = new intake(new intakeIOsim());
@@ -258,11 +255,8 @@ public class RobotContainer {
 
     operatorController
         .x()
-        .onTrue(
-            Commands.either(
-                Commands.runOnce(shooter::stopFlywheel, shooter),
-                Commands.runOnce(shooter::startFlywheel, shooter),
-                shooter::isFlywheelRunning));
+        .whileTrue(Commands.run(shooter::startFlywheel, shooter))
+        .onFalse(Commands.run(shooter::stopFlywheel, shooter));
 
     operatorController
         .leftTrigger()

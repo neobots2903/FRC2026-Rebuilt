@@ -4,6 +4,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
@@ -15,6 +16,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
+import org.littletonrobotics.junction.Logger;
 
 public class shooterIOreal implements shooterIO {
 
@@ -25,6 +27,8 @@ public class shooterIOreal implements shooterIO {
 
   private final RelativeEncoder hoodEncoder;
   private final SparkClosedLoopController hoodPID;
+
+  private double hoodSetPoint = 0.0;
 
   // Generally sets up the motors
   @SuppressWarnings("removal")
@@ -48,9 +52,7 @@ public class shooterIOreal implements shooterIO {
     config.Slot0.kP = shooterConstants.kFlywheelP;
     config.Slot0.kI = shooterConstants.kFlywheelI;
     config.Slot0.kD = shooterConstants.kFlywheelD;
-    config.Slot0.kP = shooterConstants.kFlywheel2P;
-    config.Slot0.kI = shooterConstants.kFlywheel2I;
-    config.Slot0.kD = shooterConstants.kFlywheel2D;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     config.CurrentLimits.SupplyCurrentLimit = shooterConstants.kCurrentLimit;
     config.Feedback.SensorToMechanismRatio = shooterConstants.kFlywheelGearRatio;
     return config;
@@ -61,8 +63,6 @@ public class shooterIOreal implements shooterIO {
     SparkMaxConfig config = new SparkMaxConfig();
     config.idleMode(IdleMode.kBrake);
     config.smartCurrentLimit(shooterConstants.kCurrentLimit);
-    config.closedLoop.pid(
-        shooterConstants.kHoodP, shooterConstants.kHoodI, shooterConstants.kHoodD); // Placeholder
     config.voltageCompensation(12.0); // Placeholder
     config.encoder.positionConversionFactor(shooterConstants.kHoodDegreesPerRotation);
     config.closedLoop.p(shooterConstants.kHoodP);
@@ -91,15 +91,20 @@ public class shooterIOreal implements shooterIO {
     inputs.hoodPositionDegrees = hoodEncoder.getPosition();
     inputs.hoodAppliedCurrentAmps = hoodMotor.getOutputCurrent();
     inputs.hoodAppliedVolts = hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage();
+    inputs.hoodSetPointDegrees = hoodSetPoint;
   }
 
   @Override
   // Sets the angle for the hood
   public void setHoodPosition(double positionDegrees) {
+    this.hoodSetPoint = positionDegrees;
     double clampedPosition =
         MathUtil.clamp(
-            positionDegrees, shooterConstants.kMinHoodAngle, shooterConstants.kMaxHoodAngle);
-    hoodPID.setReference(clampedPosition, ControlType.kPosition);
+            hoodSetPoint, shooterConstants.kMinHoodAngle, shooterConstants.kMaxHoodAngle);
+    Logger.recordOutput("Shooter/Hood/SetPoint", clampedPosition);
+
+    hoodPID.setReference(
+        clampedPosition - shooterConstants.kHoodAngleOffset, ControlType.kPosition);
   }
 
   @Override
@@ -110,11 +115,11 @@ public class shooterIOreal implements shooterIO {
         flywheelMotor_request
             .withVelocity(velocityRPM * 60)
             .withFeedForward(shooterConstants.kFeedForward * Math.signum(velocityRPM)));
-    final VelocityVoltage flywheelMotor2_request = new VelocityVoltage(0).withSlot(0);
-    flywheelMotor2.setControl(
-        flywheelMotor2_request
-            .withVelocity(velocityRPM * 60)
-            .withFeedForward(shooterConstants.kFeedForward * Math.signum(velocityRPM)));
+    // final VelocityVoltage flywheelMotor2_request = new VelocityVoltage(0).withSlot(0);
+    // flywheelMotor2.setControl(
+    //     flywheelMotor2_request
+    //         .withVelocity(velocityRPM * 60)
+    //         .withFeedForward(shooterConstants.kFeedForward * Math.signum(velocityRPM)));
   }
 
   @Override
