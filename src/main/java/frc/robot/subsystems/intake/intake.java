@@ -34,13 +34,14 @@ public class intake extends SubsystemBase {
     Logger.recordOutput("Intake/PivotAppliedVolts", inputs.pivotAppliedVolts);
     Logger.recordOutput("Intake/IntakeCurrentAmps", inputs.intakeAppliedCurrentAmps);
     Logger.recordOutput("Intake/IntakeAppliedVolts", inputs.intakeAppliedVolts);
+    Logger.recordOutput("Intake/IntakeRPM", inputs.intakeRPM);
   }
 
   // Controls the intake:
 
   // Starts intake
   public void startIntake() {
-    io.setIntakeVoltage(INTAKE_VOLTAGE);
+    io.setIntakeVoltage(12);
   }
   // Stops intake
   public void stopIntake() {

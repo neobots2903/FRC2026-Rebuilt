@@ -19,6 +19,7 @@ public interface intakeIO {
     // Intake motor inputs
     public double intakeAppliedCurrentAmps = 0.0;
     public double intakeAppliedVolts = 0.0;
+    public double intakeRPM = 0.0;
   }
 
   // Updates loggable inputs

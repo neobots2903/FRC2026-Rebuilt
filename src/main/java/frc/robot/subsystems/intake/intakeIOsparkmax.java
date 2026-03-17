@@ -20,6 +20,7 @@ public class intakeIOsparkmax implements intakeIO {
   private final SparkMax intakeMotor;
   private final RelativeEncoder pivotEncoder;
   private final SparkClosedLoopController pivotPID;
+  private final RelativeEncoder intakeEncoder;
   private Double pivotSetpointDegrees = 0.0;
 
   // Generally sets up the motors
@@ -38,6 +39,7 @@ public class intakeIOsparkmax implements intakeIO {
 
     pivotEncoder = pivotMotor.getEncoder();
     pivotPID = pivotMotor.getClosedLoopController();
+    intakeEncoder = intakeMotor.getEncoder();
   }
   // Configures the pivot motor
   private SparkMaxConfig configurePivotMotor() {
@@ -78,6 +80,7 @@ public class intakeIOsparkmax implements intakeIO {
     // Updates intake inputs
     inputs.intakeAppliedCurrentAmps = intakeMotor.getOutputCurrent();
     inputs.intakeAppliedVolts = intakeMotor.getAppliedOutput() * intakeMotor.getBusVoltage();
+    inputs.intakeRPM = intakeEncoder.getVelocity();
   }
 
   @Override
