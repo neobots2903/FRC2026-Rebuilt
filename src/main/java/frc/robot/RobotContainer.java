@@ -21,6 +21,10 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AimCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.climb.climb;
+import frc.robot.subsystems.climb.climbIO;
+import frc.robot.subsystems.climb.climbIOsim;
+import frc.robot.subsystems.climb.climbIOsparkmax;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -60,6 +64,7 @@ public class RobotContainer {
   private final Vision vision;
   private final shooter shooter;
   private final indexer indexer;
+  private final climb climb;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -117,6 +122,8 @@ public class RobotContainer {
 
         indexer = new indexer(new indexerIOreal());
 
+        climb = new climb(new climbIOsparkmax());
+
         break;
 
       case SIM:
@@ -140,6 +147,8 @@ public class RobotContainer {
 
         indexer = new indexer(new indexerIOsim());
 
+        climb = new climb(new climbIOsim());
+
         break;
 
       default:
@@ -157,6 +166,7 @@ public class RobotContainer {
         intake = new intake(new intakeIO() {});
         shooter = new shooter(new shooterIO() {});
         indexer = new indexer(new indexerIO() {});
+        climb = new climb(new climbIO() {});
         break;
     }
 
@@ -300,6 +310,21 @@ public class RobotContainer {
                     indexer.stopIndexer();
                   }
                 }));
+
+    // Climb inputs:
+
+    operatorController
+        .rightBumper()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  if (climb.getClimbAngle() > 180) {
+                    climb.setClimbAngle(360);
+                  } else if (climb.getClimbAngle() < 180) {
+                    climb.setClimbAngle(0);
+                  }
+                }));
+
     // TODO:
     // Run this in parallel with 'joystickDriveAtAngle' to point the robot at the hub while
     // shooting.
