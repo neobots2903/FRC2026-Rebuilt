@@ -318,11 +318,11 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  if (climb.getClimbAngle() > 180) {
-                    climb.setClimbAngle(360);
-                  } else if (climb.getClimbAngle() < 180) {
-                    climb.setClimbAngle(0);
-                  }
+                  // if (climb.getClimbAngle() < 180) {
+                  climb.setClimbAngle(100);
+                  // } else if (climb.getClimbAngle() > 180) {
+                  //   climb.setClimbAngle(0);
+                  // }
                 }));
 
     // TODO:

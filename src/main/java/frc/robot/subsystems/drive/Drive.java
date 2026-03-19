@@ -32,6 +32,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -61,7 +62,7 @@ public class Drive extends SubsystemBase {
               Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
-  private static final double ROBOT_MASS_KG = 74.088;
+  private static final double ROBOT_MASS_KG = Units.lbsToKilograms(74.4);
   private static final double ROBOT_MOI = 6.883;
   private static final double WHEEL_COF = 1.2;
   private static final RobotConfig PP_CONFIG =
@@ -77,6 +78,8 @@ public class Drive extends SubsystemBase {
               TunerConstants.FrontLeft.SlipCurrent,
               1),
           getModuleTranslations());
+
+      // CONFIGURE PATHPLANNER STUFF!!!!!!!!!!!!!!!
 
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;

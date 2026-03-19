@@ -9,7 +9,7 @@ public class climbConstants {
   // Current limit
   public static final int kClimbCurrentLimit = 40;
   // PID values
-  public static final double kClimbP = 0.1;
+  public static final double kClimbP = 0.3;
   public static final double kClimbI = 0.0;
   public static final double kClimbD = 0.0;
   // Tolerance

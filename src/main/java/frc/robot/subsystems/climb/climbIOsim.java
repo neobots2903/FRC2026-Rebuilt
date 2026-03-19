@@ -23,8 +23,8 @@ public class climbIOsim implements climbIO {
     climbMotorSim =
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(
-                DCMotor.getBag(1), MOI, climbConstants.kClimbGearRatio),
-            DCMotor.getBag(1));
+                DCMotor.getNEO(1), MOI, climbConstants.kClimbGearRatio),
+            DCMotor.getNEO(1));
     climbPID =
         new PIDController(climbConstants.kClimbP, climbConstants.kClimbI, climbConstants.kClimbD);
     climbPID.setTolerance(climbConstants.kClimbPositionTolerance);
