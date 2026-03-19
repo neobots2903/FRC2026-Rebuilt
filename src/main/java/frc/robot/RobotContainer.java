@@ -64,7 +64,7 @@ public class RobotContainer {
   private final Vision vision;
   private final shooter shooter;
   private final indexer indexer;
-  private final climb climb;
+  // private final climb climb;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -122,7 +122,7 @@ public class RobotContainer {
 
         indexer = new indexer(new indexerIOreal());
 
-        climb = new climb(new climbIOsparkmax());
+        // climb = new climb(new climbIOsparkmax());
 
         break;
 
@@ -147,7 +147,7 @@ public class RobotContainer {
 
         indexer = new indexer(new indexerIOsim());
 
-        climb = new climb(new climbIOsim());
+        // climb = new climb(new climbIOsim());
 
         break;
 
@@ -166,7 +166,7 @@ public class RobotContainer {
         intake = new intake(new intakeIO() {});
         shooter = new shooter(new shooterIO() {});
         indexer = new indexer(new indexerIO() {});
-        climb = new climb(new climbIO() {});
+        // climb = new climb(new climbIO() {});
         break;
     }
 
@@ -313,17 +313,17 @@ public class RobotContainer {
 
     // Climb inputs:
 
-    operatorController
-        .rightBumper()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  // if (climb.getClimbAngle() < 180) {
-                  climb.setClimbAngle(100);
-                  // } else if (climb.getClimbAngle() > 180) {
-                  //   climb.setClimbAngle(0);
-                  // }
-                }));
+    // operatorController
+    //     .rightBumper()
+    //     .onTrue(
+    //         Commands.runOnce(
+    //             () -> {
+    //               // if (climb.getClimbAngle() < 180) {
+    //               climb.setClimbAngle(100);
+    //               // } else if (climb.getClimbAngle() > 180) {
+    //               //   climb.setClimbAngle(0);
+    //               // }
+    //             }));
 
     // TODO:
     // Run this in parallel with 'joystickDriveAtAngle' to point the robot at the hub while
