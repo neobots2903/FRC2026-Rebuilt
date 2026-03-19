@@ -13,12 +13,9 @@ public class shooterConstants {
   // Flywheel RPM
   public static final int ShooterRPM = 2000; // Placeholder
   // Angles (in degrees)
-  public static final int kHoodAngleOffset = 30;
-  public static final int kMinHoodAngle = 30; // Placeholder
-  public static final int kMaxHoodAngle = 65; // Placeholder
-
-  public static final int kMinRotationAngle = 0; // Placeholder
-  public static final int kMaxRotationAngle = 0; // Placeholder
+  public static final int kHoodAngleOffset = 20;
+  public static final int kMinHoodAngle = 20;
+  public static final int kMaxHoodAngle = 40;
 
   public static final double kFeedForward = 0.5; // Placeholder
 

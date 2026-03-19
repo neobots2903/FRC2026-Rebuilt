@@ -37,7 +37,6 @@ public class ShooterKinematics {
   private static final double MIN_DESCENT_ANGLE_DEG = 20.0;
 
   // Motor & Limits
-  public static final double IDEAL_MOTOR_RPM = 3000.0;
   public static final double MAX_MOTOR_RPM = 6000.0;
   public static final double GEAR_REDUCTION = 1.0;
   private static final double MIN_HOOD_ANGLE_DEG = shooterConstants.kMinHoodAngle;
