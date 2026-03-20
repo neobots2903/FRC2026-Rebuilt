@@ -1,6 +1,7 @@
-package frc.robot.subsystems.shooter;
+package frc.robot.subsystems.indexer;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.shooter.shooterConstants;
 import org.littletonrobotics.junction.Logger;
 
 public class indexer extends SubsystemBase {
