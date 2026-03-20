@@ -16,9 +16,13 @@ public class shooter extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Shooter/Shooter", inputs);
     Logger.recordOutput("Shooter/Flywheel/FlywheelVelocity", inputs.flywheelVelocity);
+    Logger.recordOutput("Shooter/Flywheel/Flywheel2Velocity", inputs.flywheel2Velocity);
     Logger.recordOutput("Shooter/Flywheel/FlywheelCurrent", inputs.flywheelCurrent);
+    Logger.recordOutput("Shooter/Flywheel/Flywheel2Current", inputs.flywheel2Current);
     Logger.recordOutput("Shooter/Flywheel/FlywheelAppliedVolts", inputs.flywheelAppliedVolts);
+    Logger.recordOutput("Shooter/Flywheel/Flywheel2AppliedVolts", inputs.flywheel2AppliedVolts);
     Logger.recordOutput("Shooter/Flywheel/FlywheelSetpointRPM", inputs.flywheelSetpointRPM);
+    Logger.recordOutput("Shooter/Flywheel/Flywheel2SetpointRPM", inputs.flywheel2SetpointRPM);
     Logger.recordOutput("Shooter/Hood/HoodPositionDegrees", inputs.hoodPositionDegrees);
     Logger.recordOutput("Shooter/Hood/HoodAppliedCurrentAmps", inputs.hoodAppliedCurrentAmps);
     Logger.recordOutput("Shooter/Hood/HoodPositionDegrees", inputs.hoodPositionDegrees);
@@ -39,7 +43,7 @@ public class shooter extends SubsystemBase {
 
   // Stops shooter
   public void stopFlywheel() {
-    io.setFlywheelVelocity(0.0);
+    io.stop();
   }
 
   public double getFlywheelVelocity() {

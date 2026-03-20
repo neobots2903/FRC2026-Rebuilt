@@ -15,11 +15,11 @@ public class shooterConstants {
   // Angles (in degrees)
   public static final int kHoodAngleOffset = 20;
   public static final int kMinHoodAngle = 20;
-  public static final int kMaxHoodAngle = 40;
+  public static final int kMaxHoodAngle = 35;
 
-  public static final double kFeedForward = 0.5; // Placeholder
-
-  public static final int kCurrentLimit = 5; // Placeholder
+  public static final int kFlywheelCurrentLimit = 60;
+  public static final int kHoodCurrentLimit = 10;
+  public static final int kIndexerCurrentLimit = 7;
 
   public static final double kGearRatio = 1.0;
 
@@ -40,16 +40,18 @@ public class shooterConstants {
   // Mechanical Ratios
   public static final double kHoodGearRatio = 20.0;
   public static final double kHoodDegreesPerRotation = 360.0 / kHoodGearRatio;
-  public static final double kFlywheelGearRatio = 1.0; // Placeholder
+  public static final double kFlywheelGearRatio = 1.0;
   public static final double kIndexerGearRatio = 12.0;
 
   // PID Values
-  public static final double kHoodP = 0.2; // Placeholder
+  public static final double kHoodP = 0.5; // Placeholder
   public static final double kHoodI = 0.0; // Placeholder
   public static final double kHoodD = 0.0; // Placeholder
-  public static final double kFlywheelP = 1.0; // Placeholder
-  public static final double kFlywheelI = 0.1; // Placeholder
-  public static final double kFlywheelD = 0.0; // Placeholder
+
+  public static final double kFlywheelP = 0.5;
+  public static final double kFlywheelI = 0.0;
+  public static final double kFlywheelD = 0.0;
+  public static final double kFeedForward = 4.0;
 
   // Field-specific constants
   public static final double FIELD_LENGTH = 16.54; // meters

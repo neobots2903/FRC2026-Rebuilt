@@ -25,7 +25,7 @@ public class indexerIOreal implements indexerIO {
   private SparkMaxConfig configureIndexerMotor() {
     SparkMaxConfig config = new SparkMaxConfig();
     config.idleMode(IdleMode.kBrake);
-    config.smartCurrentLimit(shooterConstants.kCurrentLimit);
+    config.smartCurrentLimit(shooterConstants.kIndexerCurrentLimit);
     config.voltageCompensation(12.0);
     return config;
   }

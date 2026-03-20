@@ -6,6 +6,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -29,6 +30,7 @@ public class shooterIOreal implements shooterIO {
   private final SparkClosedLoopController hoodPID;
 
   private double hoodSetPoint = 0.0;
+  private double flywheelSetPointRPM = 0.0;
 
   // Generally sets up the motors
   @SuppressWarnings("removal")
@@ -36,9 +38,9 @@ public class shooterIOreal implements shooterIO {
     flywheelMotor = new TalonFX(shooterConstants.kFlywheelMotorID);
     flywheelMotor.getConfigurator().apply(configureFlywheelMotor());
     flywheelMotor2 = new TalonFX(shooterConstants.kFlywheelMotor2ID);
-    // flywheelMotor2.getConfigurator().apply(configureFlywheelMotor());
+    flywheelMotor2.getConfigurator().apply(configureFlywheelMotor2());
     flywheelMotor2.setControl(
-        new Follower(flywheelMotor2.getDeviceID(), MotorAlignmentValue.Opposed));
+        new Follower(flywheelMotor.getDeviceID(), MotorAlignmentValue.Opposed));
     hoodMotor = new SparkMax(shooterConstants.kHoodMotorID, SparkLowLevel.MotorType.kBrushless);
     hoodMotor.configure(
         configureHoodMotor(), ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -53,7 +55,17 @@ public class shooterIOreal implements shooterIO {
     config.Slot0.kI = shooterConstants.kFlywheelI;
     config.Slot0.kD = shooterConstants.kFlywheelD;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    config.CurrentLimits.SupplyCurrentLimit = shooterConstants.kCurrentLimit;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    config.CurrentLimits.SupplyCurrentLimit = shooterConstants.kFlywheelCurrentLimit;
+    config.Feedback.SensorToMechanismRatio = shooterConstants.kFlywheelGearRatio;
+    return config;
+  }
+
+  // Configures the flywheel 2 motor
+  private TalonFXConfiguration configureFlywheelMotor2() {
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    config.CurrentLimits.SupplyCurrentLimit = shooterConstants.kFlywheelCurrentLimit;
     config.Feedback.SensorToMechanismRatio = shooterConstants.kFlywheelGearRatio;
     return config;
   }
@@ -62,7 +74,7 @@ public class shooterIOreal implements shooterIO {
   private SparkMaxConfig configureHoodMotor() {
     SparkMaxConfig config = new SparkMaxConfig();
     config.idleMode(IdleMode.kBrake);
-    config.smartCurrentLimit(shooterConstants.kCurrentLimit);
+    config.smartCurrentLimit(shooterConstants.kHoodCurrentLimit);
     config.voltageCompensation(12.0); // Placeholder
     config.encoder.positionConversionFactor(shooterConstants.kHoodDegreesPerRotation);
     config.closedLoop.p(shooterConstants.kHoodP);
@@ -75,18 +87,12 @@ public class shooterIOreal implements shooterIO {
   // Updates inputs
   public void updateInputs(shooterIOInputs inputs) {
     // Updates the flywheel inputs
-    flywheelMotor.getVelocity();
-    inputs.flywheelVelocity =
-        flywheelMotor.getVelocity().getValueAsDouble()
-            * 60.0; // Might need to multiply by gear ratio
-    flywheelMotor.getStatorCurrent();
-    inputs.flywheelCurrent = flywheelMotor.getStatorCurrent().getValueAsDouble();
-    flywheelMotor2.getVelocity();
-    inputs.flywheel2Velocity =
-        flywheelMotor2.getVelocity().getValueAsDouble()
-            * 60.0; // Might need to multiply by gear ratio
-    flywheelMotor2.getStatorCurrent();
-    inputs.flywheel2Current = flywheelMotor2.getStatorCurrent().getValueAsDouble();
+    // flywheelMotor.getVelocity();
+    inputs.flywheelVelocity = flywheelMotor.getVelocity().getValueAsDouble() * 60.0;
+    inputs.flywheelCurrent = flywheelMotor.getTorqueCurrent().getValueAsDouble();
+    inputs.flywheel2Velocity = flywheelMotor2.getVelocity().getValueAsDouble() * 60.0;
+    inputs.flywheel2Current = flywheelMotor2.getTorqueCurrent().getValueAsDouble();
+    inputs.flywheelSetpointRPM = flywheelSetPointRPM;
     // Updates the hood inputs
     inputs.hoodPositionDegrees = hoodEncoder.getPosition();
     inputs.hoodAppliedCurrentAmps = hoodMotor.getOutputCurrent();
@@ -110,24 +116,22 @@ public class shooterIOreal implements shooterIO {
   @Override
   // Sets the velocity for the flywheels
   public void setFlywheelVelocity(double velocityRPM) {
+    this.flywheelSetPointRPM = velocityRPM;
     final VelocityVoltage flywheelMotor_request = new VelocityVoltage(0).withSlot(0);
     flywheelMotor.setControl(
         flywheelMotor_request
-            .withVelocity(velocityRPM * 60)
+            .withVelocity(velocityRPM / 60)
             .withFeedForward(shooterConstants.kFeedForward * Math.signum(velocityRPM)));
-    // final VelocityVoltage flywheelMotor2_request = new VelocityVoltage(0).withSlot(0);
-    // flywheelMotor2.setControl(
-    //     flywheelMotor2_request
-    //         .withVelocity(velocityRPM * 60)
-    //         .withFeedForward(shooterConstants.kFeedForward * Math.signum(velocityRPM)));
   }
 
   @Override
   // Stops the systems
   public void stop() {
     flywheelMotor.stopMotor();
-    flywheelMotor2.stopMotor();
+    // flywheelMotor2.stopMotor();
     hoodMotor.stopMotor();
+    flywheelSetPointRPM = 0.0;
+    hoodSetPoint = 0.0;
   }
 
   @Override
