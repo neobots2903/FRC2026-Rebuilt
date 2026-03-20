@@ -36,6 +36,8 @@ public class DriveCommands {
   private static final double ANGLE_KD = 0.4;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
+  private static final double SNAP_ANGLE_TOLERANCE = Math.toRadians(2.0); // 2 degrees tolerance
+  private static final double SNAP_VELOCITY_TOLERANCE = 0.1; // rad/s tolerance
   private static final double FF_START_DELAY = 2.0; // Secs
   // private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double FF_RAMP_RATE = 0.25; // Amps/Sec
@@ -149,6 +151,65 @@ public class DriveCommands {
 
         // Reset PID controller when command starts
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()));
+  }
+
+  /**
+   * Snaps the robot to a target angle while still allowing joystick control for translation. The
+   * command finishes once the robot reaches the target angle (within tolerance), allowing the
+   * default drive command to regain control. This is useful for D-Pad snap-to-angle functionality.
+   * The target angle is automatically flipped 180° on Red alliance for field-relative consistency.
+   */
+  public static Command snapToAngle(
+      Drive drive, DoubleSupplier xSupplier, DoubleSupplier ySupplier, Rotation2d targetAngle) {
+
+    // Create PID controller
+    ProfiledPIDController angleController =
+        new ProfiledPIDController(
+            ANGLE_KP,
+            0.0,
+            ANGLE_KD,
+            new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
+    angleController.setTolerance(SNAP_ANGLE_TOLERANCE, SNAP_VELOCITY_TOLERANCE);
+
+    // Construct command
+    return Commands.run(
+            () -> {
+              // Get linear velocity
+              Translation2d linearVelocity =
+                  getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+
+              // Flip target angle for Red alliance
+              boolean isFlipped =
+                  DriverStation.getAlliance().isPresent()
+                      && DriverStation.getAlliance().get() == Alliance.Red;
+              Rotation2d adjustedTarget =
+                  isFlipped ? targetAngle.plus(new Rotation2d(Math.PI)) : targetAngle;
+
+              // Calculate angular speed
+              double omega =
+                  angleController.calculate(
+                      drive.getRotation().getRadians(), adjustedTarget.getRadians());
+
+              // Convert to field relative speeds & send command
+              ChassisSpeeds speeds =
+                  new ChassisSpeeds(
+                      linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                      linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                      omega);
+              drive.runVelocity(
+                  ChassisSpeeds.fromFieldRelativeSpeeds(
+                      speeds,
+                      isFlipped
+                          ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                          : drive.getRotation()));
+            },
+            drive)
+
+        // Reset PID controller when command starts
+        .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()))
+        // Command ends when at the target angle
+        .until(() -> angleController.atGoal());
   }
 
   /**

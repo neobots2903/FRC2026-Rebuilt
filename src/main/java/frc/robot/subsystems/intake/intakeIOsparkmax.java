@@ -52,7 +52,7 @@ public class intakeIOsparkmax implements intakeIO {
     config
         .closedLoop
         .pid(intakeConstants.kPivotP, intakeConstants.kPivotI, intakeConstants.kPivotD)
-        .outputRange(-0.3, 0.3);
+        .outputRange(-0.25, 0.25);
     // Configures encoder conversion factors, converting from rotations to degrees
     config.encoder.positionConversionFactor(intakeConstants.kPivotDegreesPerRotation);
     // Sets soft limits for the pivot position, stopping it but allowing room for error

@@ -35,27 +35,48 @@ public class intake extends SubsystemBase {
     Logger.recordOutput("Intake/IntakeCurrentAmps", inputs.intakeAppliedCurrentAmps);
     Logger.recordOutput("Intake/IntakeAppliedVolts", inputs.intakeAppliedVolts);
     Logger.recordOutput("Intake/IntakeRPM", inputs.intakeRPM);
+    Logger.recordOutput("Intake/SafeToIntake", isSafeToIntake());
+    Logger.recordOutput("Intake/IsStowed", isStowed());
   }
 
   // Controls the intake:
 
-  // Starts intake
-  public void startIntake() {
-    io.setIntakeVoltage(12);
+  // Check if the intake pivot is deployed enough to safely run the intake wheels
+  public boolean isSafeToIntake() {
+    return getPivotAngle() > 90;
   }
 
-  // Starts intakeintake
-  public void startIntakeIntake() {
-    io.setIntakeVoltage(5);
+  // Starts intake to shoot out the back (only when safe)
+  public void shootOutBack() {
+    if (isSafeToIntake()) {
+      io.setIntakeVoltage(12);
+    } else {
+      io.setIntakeVoltage(0); // Ensure stopped when not safe
+    }
+  }
+
+  // Starts intake wheels (only when safe)
+  public void startIntake() {
+    if (isSafeToIntake()) {
+      io.setIntakeVoltage(5);
+    } else {
+      io.setIntakeVoltage(0); // Ensure stopped when not safe
+    }
   }
 
   // Stops intake
   public void stopIntake() {
     io.setIntakeVoltage(0);
   }
+
   // Determines if the intake is running
   public boolean isIntakeRunning() {
     return inputs.intakeAppliedVolts > 0.1;
+  }
+
+  // Check if the intake is stowed (retracted)
+  public boolean isStowed() {
+    return getPivotAngle() < intakeConstants.kPivotPositionTolerance;
   }
 
   // Controls the pivot:

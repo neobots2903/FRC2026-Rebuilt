@@ -1,13 +1,63 @@
-Driver:
-- Basic joystick controls
-- A locks the robot into going forward (no turning)
-- X stops the robot in place, making it extremely hard for it to be pushed (good when defending or going up against defense)
-- B sets the robot in the direction it's facing
+# Robot Controls Guide
 
-Operator:
-- Press B once to start intake, press B again to stop it
-- Press A to put the intake pivot down, press A again to move it back
-- Press X once to do manual shooting, press X again to stop it
-- Press Right Trigger to manually move hood up, press Left Trigger to manually move hood down
-- Hold Y to do shooting with auto-aiming
-- Press Left Bumper to start indexer, press Left Bumper again to stop it
+## Driver Controls
+
+### Driving (Left & Right Sticks)
+| Input | Action | Type |
+|-------|--------|------|
+| Left Stick | Move forward/backward and strafe left/right | Always |
+| Right Stick | Rotate left/right | Always |
+| LT | Slow mode (50% speed) | Hold |
+
+### Heading Control (D-Pad & Face Buttons)
+| Input | Action | Type |
+|-------|--------|------|
+| D-Pad Up | Snap to 0° (forward) | Press |
+| D-Pad Right | Snap to 270° (right) | Press |
+| D-Pad Down | Snap to 180° (backward) | Press |
+| D-Pad Left | Snap to 90° (left) | Press |
+| A | Lock heading to 0° while driving | Hold |
+| B | Reset gyro to 0° | Press |
+
+### Defense
+| Input | Action | Type |
+|-------|--------|------|
+| X | X-brake (wheels lock in X pattern, hard to push) | Press |
+
+### Intake Assist
+| Input | Action | Type |
+|-------|--------|------|
+| LB | Eject out back at full speed | Hold |
+
+---
+
+## Operator Controls
+
+### Intake
+| Input | Action | Type |
+|-------|--------|------|
+| A | Toggle intake pivot (up/down) | Toggle |
+| B | Toggle intake into robot | Toggle |
+
+### Indexer
+| Input | Action | Type |
+|-------|--------|------|
+| X | Toggle indexer on/off | Toggle |
+
+### Shooter - Manual
+| Input | Action | Type |
+|-------|--------|------|
+| RT (analog) | Manual flywheel (1800-3600 RPM based on trigger) | Analog Hold |
+| Left Stick Y | Adjust hood angle (up/down) | Analog |
+
+### Shooter - Auto-Aim
+| Input | Action | Type |
+|-------|--------|------|
+| Y | Auto-aim + shoot (calculates RPM & hood angle) | Hold |
+
+### Fire Control Tuning
+| Input | Action | Type |
+|-------|--------|------|
+| D-Pad Up | RPM trim +25 | Press |
+| D-Pad Down | RPM trim -25 | Press |
+| D-Pad Left | Reset RPM trim to 0 | Press |

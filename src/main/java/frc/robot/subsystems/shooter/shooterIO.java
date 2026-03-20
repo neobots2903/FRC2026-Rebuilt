@@ -29,8 +29,6 @@ public interface shooterIO {
 
   public default void setHoodPosition(double positionDegrees) {}
 
-  public default void setRotationPosition(double positionDegrees) {}
-
   public default void stop() {}
 
   public default void resetEncoders() {}
