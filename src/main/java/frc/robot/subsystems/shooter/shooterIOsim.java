@@ -70,7 +70,8 @@ public class shooterIOsim implements shooterIO {
     inputs.flywheel2Current = flywheelMotor2Sim.getCurrentDrawAmps();
     inputs.flywheel2Velocity = getFlywheelRPM();
     inputs.flywheel2AppliedVolts = flywheel2AppliedVolts;
-    inputs.hoodPositionDegrees = hoodMotorSim.getAngularPositionRotations() * 360.0;
+    inputs.hoodPositionDegrees =
+        hoodMotorSim.getAngularPositionRotations() * 360.0 + shooterConstants.kHoodAngleOffset;
     inputs.hoodAppliedCurrentAmps = hoodMotorSim.getCurrentDrawAmps();
     inputs.hoodAppliedVolts = hoodAppliedVolts;
     inputs.hoodSetPointDegrees =

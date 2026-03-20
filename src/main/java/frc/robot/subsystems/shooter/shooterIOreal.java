@@ -87,30 +87,30 @@ public class shooterIOreal implements shooterIO {
   // Updates inputs
   public void updateInputs(shooterIOInputs inputs) {
     // Updates the flywheel inputs
-    // flywheelMotor.getVelocity();
     inputs.flywheelVelocity = flywheelMotor.getVelocity().getValueAsDouble() * 60.0;
     inputs.flywheelCurrent = flywheelMotor.getTorqueCurrent().getValueAsDouble();
     inputs.flywheel2Velocity = flywheelMotor2.getVelocity().getValueAsDouble() * 60.0;
     inputs.flywheel2Current = flywheelMotor2.getTorqueCurrent().getValueAsDouble();
     inputs.flywheelSetpointRPM = flywheelSetPointRPM;
-    // Updates the hood inputs
-    inputs.hoodPositionDegrees = hoodEncoder.getPosition();
+    // Updates the hood inputs — convert encoder degrees to physical launch angle
+    inputs.hoodPositionDegrees = hoodEncoder.getPosition() + shooterConstants.kHoodAngleOffset;
     inputs.hoodAppliedCurrentAmps = hoodMotor.getOutputCurrent();
     inputs.hoodAppliedVolts = hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage();
     inputs.hoodSetPointDegrees = hoodSetPoint;
   }
 
   @Override
-  // Sets the angle for the hood
+  // Sets the angle for the hood (positionDegrees is physical launch angle, e.g. 20–35)
   public void setHoodPosition(double positionDegrees) {
     this.hoodSetPoint = positionDegrees;
     double clampedPosition =
         MathUtil.clamp(
-            hoodSetPoint, shooterConstants.kMinHoodAngle, shooterConstants.kMaxHoodAngle);
+            positionDegrees, shooterConstants.kMinHoodAngle, shooterConstants.kMaxHoodAngle);
     Logger.recordOutput("Shooter/Hood/SetPoint", clampedPosition);
 
-    hoodPID.setReference(
-        clampedPosition - shooterConstants.kHoodAngleOffset, ControlType.kPosition);
+    // Convert physical angle to encoder space for the onboard PID
+    double encoderTarget = clampedPosition - shooterConstants.kHoodAngleOffset;
+    hoodPID.setReference(encoderTarget, ControlType.kPosition);
   }
 
   @Override
@@ -128,10 +128,9 @@ public class shooterIOreal implements shooterIO {
   // Stops the systems
   public void stop() {
     flywheelMotor.stopMotor();
-    // flywheelMotor2.stopMotor();
     hoodMotor.stopMotor();
     flywheelSetPointRPM = 0.0;
-    hoodSetPoint = 0.0;
+    hoodSetPoint = shooterConstants.kMinHoodAngle; // Park at physical minimum, not 0
   }
 
   @Override

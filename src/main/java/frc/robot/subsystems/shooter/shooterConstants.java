@@ -13,9 +13,11 @@ public class shooterConstants {
   // Flywheel RPM
   public static final int ShooterRPM = 2000; // Placeholder
   // Angles (in degrees)
+  // Hood angle offset: encoder reads 0 when physical angle is 20°
   public static final int kHoodAngleOffset = 20;
-  public static final int kMinHoodAngle = 20;
-  public static final int kMaxHoodAngle = 35;
+  // Min/max are in PHYSICAL launch angle degrees
+  public static final int kMinHoodAngle = 20; // encoder = 0
+  public static final int kMaxHoodAngle = 35; // encoder = 15
 
   public static final int kFlywheelCurrentLimit = 60;
   public static final int kHoodCurrentLimit = 10;
@@ -44,7 +46,7 @@ public class shooterConstants {
   public static final double kIndexerGearRatio = 12.0;
 
   // PID Values
-  public static final double kHoodP = 0.5; // Placeholder
+  public static final double kHoodP = 0.05;
   public static final double kHoodI = 0.0; // Placeholder
   public static final double kHoodD = 0.0; // Placeholder
 
