@@ -43,6 +43,12 @@ public class intake extends SubsystemBase {
   public void startIntake() {
     io.setIntakeVoltage(12);
   }
+
+  // Starts intakeintake
+  public void startIntakeIntake() {
+    io.setIntakeVoltage(5);
+  }
+
   // Stops intake
   public void stopIntake() {
     io.setIntakeVoltage(0);

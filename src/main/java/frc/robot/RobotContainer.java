@@ -248,6 +248,18 @@ public class RobotContainer {
                 }));
 
     operatorController
+        .rightBumper()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  if (!intake.isIntakeRunning()) {
+                    intake.startIntakeIntake();
+                  } else if (intake.isIntakeRunning()) {
+                    intake.stopIntake();
+                  }
+                }));
+
+    operatorController
         .a()
         .onTrue(
             Commands.runOnce(
