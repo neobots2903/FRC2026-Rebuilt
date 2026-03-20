@@ -311,14 +311,17 @@ public class RobotContainer {
                     })));
 
     // RT (analog): Manual flywheel with proportional RPM (1800-3600 RPM)
+    // Uses quadratic curve for finer control at lower trigger values
     operatorController
         .rightTrigger(0.1) // Small deadband
         .whileTrue(
             Commands.run(
                 () -> {
                   double triggerValue = operatorController.getRightTriggerAxis();
-                  // Map 0-1 trigger to 1800-3600 RPM
-                  double rpm = 1800 + (triggerValue * 1800);
+                  // Apply input squaring for finer low-end control
+                  double curved = triggerValue * triggerValue;
+                  // Map 0-1 curved trigger to 1800-3600 RPM
+                  double rpm = 1800 + (curved * 1800);
                   shooter.startFlywheel(rpm);
                 },
                 shooter))
