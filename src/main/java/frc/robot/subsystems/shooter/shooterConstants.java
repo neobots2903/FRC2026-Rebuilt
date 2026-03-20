@@ -16,7 +16,7 @@ public class shooterConstants {
   // Hood angle offset: encoder reads 0 when physical angle is 20°
   public static final int kHoodAngleOffset = 20;
   // Min/max are in PHYSICAL launch angle degrees
-  public static final int kMinHoodAngle = 20; // encoder = 0
+  public static final int kMinHoodAngle = 21; // encoder = 0 + 1 degree buffer
   public static final int kMaxHoodAngle = 35; // encoder = 15
 
   public static final int kFlywheelCurrentLimit = 60;
@@ -47,8 +47,8 @@ public class shooterConstants {
 
   // PID Values
   public static final double kHoodP = 0.05;
-  public static final double kHoodI = 0.0; // Placeholder
-  public static final double kHoodD = 0.0; // Placeholder
+  public static final double kHoodI = 0.0;
+  public static final double kHoodD = 0.0;
 
   public static final double kFlywheelP = 0.5;
   public static final double kFlywheelI = 0.0;

@@ -45,7 +45,7 @@ public class ShooterKinematics {
   private static final double MAX_TURRET_ANGLE_DEG = 270.0;
 
   // Velocity sweep parameters
-  private static final double MIN_EXIT_VELOCITY_MPS = 5.0;
+  private static final double MIN_EXIT_VELOCITY_MPS = 7.0;
   private static final double VELOCITY_STEP_MPS = 0.5;
   private static final double IDEAL_LAUNCH_ANGLE_DEG = 45.0;
 
@@ -231,8 +231,8 @@ public class ShooterKinematics {
     double tanTheta2 = (-B - Math.sqrt(discriminant)) / (2 * k);
     double angle1 = Math.toDegrees(Math.atan(tanTheta1));
     double angle2 = Math.toDegrees(Math.atan(tanTheta2));
-    double hoodAngle1 = 90 - angle1;
-    double hoodAngle2 = 90 - angle2;
+    double hoodAngle1 = (90 - angle1);
+    double hoodAngle2 = (90 - angle2);
     boolean angle1Valid =
         hoodAngle1 >= MIN_HOOD_ANGLE_DEG
             && hoodAngle1 <= MAX_HOOD_ANGLE_DEG
@@ -287,9 +287,11 @@ public class ShooterKinematics {
     }
 
     for (double v = minVelocity; v <= maxVelocity; v += VELOCITY_STEP_MPS) {
-      double angle = solveHoodAngleForVelocity(v, distance, deltaZ);
+      double angle = solveHoodAngleForVelocity(v, distance, deltaZ) + 5; // TODO: It too short
       if (!Double.isNaN(angle)) {
-        double rpm = exitVelocityToMotorRPM(v);
+        double rpm =
+            exitVelocityToMotorRPM(v)
+                + 1250; // TODO: It too short (needs PID tuning, under setpoint)
         return new ShooterSolution(angle, rpm, true);
       }
     }

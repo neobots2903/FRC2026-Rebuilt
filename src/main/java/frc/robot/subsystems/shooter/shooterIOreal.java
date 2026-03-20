@@ -33,7 +33,6 @@ public class shooterIOreal implements shooterIO {
   private double flywheelSetPointRPM = 0.0;
 
   // Generally sets up the motors
-  @SuppressWarnings("removal")
   public shooterIOreal() {
     flywheelMotor = new TalonFX(shooterConstants.kFlywheelMotorID);
     flywheelMotor.getConfigurator().apply(configureFlywheelMotor());
