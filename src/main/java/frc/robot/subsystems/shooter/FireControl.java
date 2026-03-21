@@ -35,7 +35,7 @@ public class FireControl {
       Units.inchesToMeters(15); // floor to ball center at exit
   private static final double WHEEL_DIAMETER_M =
       Units.inchesToMeters(6); // flywheel wheel diameter (6")
-  private static final double SLIP_FACTOR = 0.35; // 0=no grip, 1=perfect;
+  private static final double SLIP_FACTOR = 0.3; // 0=no grip, 1=perfect;
 
   // Launcher position relative to robot center (meters)
   private static final double LAUNCHER_OFFSET_X = -Units.inchesToMeters(7); // ~7 inches backwards

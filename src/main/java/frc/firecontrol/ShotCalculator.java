@@ -570,7 +570,7 @@ public class ShotCalculator {
 
   /** Bump the RPM offset by delta. Clamped to +/- 200. Bind this to copilot D-pad. */
   public void adjustOffset(double delta) {
-    rpmOffset = MathUtil.clamp(rpmOffset + delta, -200, 200);
+    rpmOffset = MathUtil.clamp(rpmOffset + delta, -350, 350);
   }
 
   /** Reset the RPM offset to zero. Call this on mode transitions so trim doesn't carry over. */

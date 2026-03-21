@@ -22,19 +22,24 @@ public class TunerConstants {
   // output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
   private static final Slot0Configs steerGains =
       new Slot0Configs()
-          .withKP(160)
+          .withKP(160) // 160
           .withKI(0)
-          .withKD(10)
+          .withKD(10) // 10
           .withKS(0.1)
           .withKV(1.91)
           .withKA(0)
           .withStaticFeedforwardSign(StaticFeedforwardSignValue.UseClosedLoopSign);
   // When using closed-loop control, the drive motor uses the control
   // output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
+  // Units for TorqueCurrentFOC: kP = Amps per RPS error, kD = Amps per RPS² error
   private static final Slot0Configs driveGains =
-      new Slot0Configs().withKP(5).withKI(0).withKD(0.1).withKS(2.44351).withKV(1.16285);
-  // initial ks: 3.14556 -- 2.70381
-  // initial kv: 1.11151 -- 1.6728
+      new Slot0Configs()
+          .withKP(35) // Was 5 — increased for TorqueCurrentFOC responsiveness (Kraken X60)
+          .withKI(0)
+          .withKD(2.0) // Was 0.1 — increased to dampen oscillation at higher kP
+          .withKS(2.44351) // 2.44351 (from SysId)
+          .withKV(1.16285); // 1.16285 (from SysId)
+
   // The closed-loop output type to use for the steer motors;
   // This affects the PID/FF gains for the steer motors
   private static final ClosedLoopOutputType kSteerClosedLoopOutput =

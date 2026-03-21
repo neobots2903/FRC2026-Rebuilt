@@ -43,7 +43,7 @@ public class intake extends SubsystemBase {
 
   // Check if the intake pivot is deployed enough to safely run the intake wheels
   public boolean isSafeToIntake() {
-    return getPivotAngle() > 90;
+    return getPivotAngle() > 50;
   }
 
   // Starts intake to shoot out the back (only when safe)

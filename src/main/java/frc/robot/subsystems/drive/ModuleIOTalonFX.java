@@ -132,7 +132,8 @@ public class ModuleIOTalonFX implements ModuleIO {
     turnConfig.Feedback.RotorToSensorRatio = constants.SteerMotorGearRatio;
     turnConfig.MotionMagic.MotionMagicCruiseVelocity = 100.0 / constants.SteerMotorGearRatio;
     turnConfig.MotionMagic.MotionMagicAcceleration =
-        turnConfig.MotionMagic.MotionMagicCruiseVelocity / 0.100;
+        turnConfig.MotionMagic.MotionMagicCruiseVelocity
+            / 0.050; // Was 0.100 — halved ramp time for snappier steer
     turnConfig.MotionMagic.MotionMagicExpo_kV = 0.12 * constants.SteerMotorGearRatio;
     turnConfig.MotionMagic.MotionMagicExpo_kA = 0.1;
     turnConfig.ClosedLoopGeneral.ContinuousWrap = true;

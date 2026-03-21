@@ -30,6 +30,7 @@ import frc.robot.subsystems.indexer.indexerIO;
 import frc.robot.subsystems.indexer.indexerIOreal;
 import frc.robot.subsystems.indexer.indexerIOsim;
 import frc.robot.subsystems.intake.intake;
+import frc.robot.subsystems.intake.intakeConstants;
 import frc.robot.subsystems.intake.intakeIO;
 import frc.robot.subsystems.intake.intakeIOsim;
 import frc.robot.subsystems.intake.intakeIOsparkmax;
@@ -137,8 +138,10 @@ public class RobotContainer {
 
     // Register named commands for PathPlanner autos
     // Use shimmy version to help feed balls from hopper
+    // NamedCommands.registerCommand(
+    //     "Score Fuel", AutoCommands.ScoreFuel(indexer, shooter, intake, drive, false));
     NamedCommands.registerCommand(
-        "Score Fuel", AutoCommands.ScoreFuel(indexer, shooter, intake, drive, false));
+        "Score Fuel", AutoCommands.ScoreFuel(indexer, shooter, intake, drive, fireControl, false));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -250,22 +253,15 @@ public class RobotContainer {
                   if (intake.getPivotAngle() > 50) {
                     intake.setPivotAngle(0);
                   } else {
-                    intake.setPivotAngle(100);
+                    intake.setPivotAngle(90);
                   }
                 }));
 
     // B: Toggle intake into robot
     operatorController
         .b()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  if (!intake.isIntakeRunning()) {
-                    intake.startIntake();
-                  } else {
-                    intake.stopIntake();
-                  }
-                }));
+        .onTrue(Commands.run(() -> intake.startIntake(), intake))
+        .onFalse(Commands.run(() -> intake.stopIntake(), intake));
 
     // X: Toggle indexer
     operatorController
@@ -309,6 +305,40 @@ public class RobotContainer {
         .rightBumper()
         .onTrue(Commands.run(() -> intake.shootOutBack(), intake))
         .onFalse(Commands.run(() -> intake.stopIntake(), intake));
+
+    // LB trim -2 degrees to intake pivot angle
+    operatorController
+        .leftBumper()
+        .whileTrue(
+            Commands.run(
+                () -> {
+                  double currentAngle = intake.getPivotAngle();
+                  double newAngle = currentAngle - 2.0;
+                  // Clamp to valid range
+                  newAngle =
+                      Math.max(
+                          intakeConstants.kInPosition,
+                          Math.min(intakeConstants.kOutPosition, newAngle));
+                  intake.setPivotAngle(newAngle);
+                },
+                intake));
+
+    // Right D-Pad: +2 degrees to intake pivot angle
+    operatorController
+        .povRight()
+        .whileTrue(
+            Commands.run(
+                () -> {
+                  double currentAngle = intake.getPivotAngle();
+                  double newAngle = currentAngle + 2.0;
+                  // Clamp to valid range
+                  newAngle =
+                      Math.max(
+                          intakeConstants.kInPosition,
+                          Math.min(intakeConstants.kOutPosition, newAngle));
+                  intake.setPivotAngle(newAngle);
+                },
+                intake));
 
     // RT (analog): Manual flywheel with proportional RPM (1800-3600 RPM)
     // Uses quadratic curve for finer control at lower trigger values
