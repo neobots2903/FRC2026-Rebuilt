@@ -238,12 +238,6 @@ public class RobotContainer {
                 () -> -driverController.getLeftY() * 0.5,
                 () -> -driverController.getLeftX() * 0.5,
                 () -> -driverController.getRightX() * 0.5));
-
-    //  When RB is held, intake out back at full speed
-    driverController
-        .rightBumper()
-        .onTrue(Commands.run(() -> intake.shootOutBack(), intake))
-        .onFalse(Commands.run(() -> intake.stopIntake(), intake));
   }
 
   private void configureOperatorBindings() {
@@ -288,7 +282,7 @@ public class RobotContainer {
 
     // Y: Auto-aim + shoot (hold)
     operatorController
-        .y()
+        .leftTrigger()
         .whileTrue(
             Commands.parallel(
                 new AimCommands(
@@ -309,6 +303,12 @@ public class RobotContainer {
                       double dy = hub.getY() - pose.getY();
                       return new Rotation2d(dx, dy);
                     })));
+
+    //  When RB is held, intake out back at full speed
+    operatorController
+        .rightBumper()
+        .onTrue(Commands.run(() -> intake.shootOutBack(), intake))
+        .onFalse(Commands.run(() -> intake.stopIntake(), intake));
 
     // RT (analog): Manual flywheel with proportional RPM (1800-3600 RPM)
     // Uses quadratic curve for finer control at lower trigger values

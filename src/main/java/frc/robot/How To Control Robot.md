@@ -24,11 +24,6 @@
 |-------|--------|------|
 | X | X-brake (wheels lock in X pattern, hard to push) | Press |
 
-### Intake Assist
-| Input | Action | Type |
-|-------|--------|------|
-| LB | Eject out back at full speed | Hold |
-
 ---
 
 ## Operator Controls
@@ -38,6 +33,7 @@
 |-------|--------|------|
 | A | Toggle intake pivot (up/down) | Toggle |
 | B | Toggle intake into robot | Toggle |
+| RB | Eject out back at full speed | Hold |
 
 ### Indexer
 | Input | Action | Type |
@@ -53,7 +49,7 @@
 ### Shooter - Auto-Aim
 | Input | Action | Type |
 |-------|--------|------|
-| Y | Auto-aim + shoot (calculates RPM & hood angle) | Hold |
+| LT | Auto-aim + shoot (calculates RPM & hood angle) | Hold |
 
 ### Fire Control Tuning
 | Input | Action | Type |
