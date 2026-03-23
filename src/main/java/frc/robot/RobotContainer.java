@@ -141,7 +141,7 @@ public class RobotContainer {
     // NamedCommands.registerCommand(
     //     "Score Fuel", AutoCommands.ScoreFuel(indexer, shooter, intake, drive, false));
     NamedCommands.registerCommand(
-        "Score Fuel", AutoCommands.ScoreFuel(indexer, shooter, intake, drive, fireControl, false));
+        "Score Fuel", AutoCommands.ScoreFuel(indexer, shooter, intake, drive, fireControl, true));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
