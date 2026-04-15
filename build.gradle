@@ -3,11 +3,17 @@ plugins {
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
     id "com.peterabeles.gversion" version "1.10"
     id "com.diffplug.spotless" version "6.12.0"
+    id "org.jetbrains.kotlin.jvm" version "2.0.21"
+    id "org.jetbrains.kotlin.kapt" version "2.0.21"
 }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
@@ -95,7 +101,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
-    annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
+    kapt "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
 }
 
 test {
@@ -129,6 +135,7 @@ wpi.java.configureTestTasks(test)
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
+    options.encoding = 'UTF-8'
 }
 
 // Create version file
@@ -186,6 +193,15 @@ spotless {
         toggleOffOn()
         googleJavaFormat()
         removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    kotlin {
+        target fileTree(".") {
+            include "**/*.kt"
+            exclude "**/build/**", "**/build-*/**"
+        }
+        ktlint()
         trimTrailingWhitespace()
         endWithNewline()
     }

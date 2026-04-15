@@ -19,16 +19,16 @@ import frc.robot.commands.AimCommands;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Indexer.Indexer;
+import frc.robot.subsystems.Indexer.IndexerIO;
+import frc.robot.subsystems.Indexer.IndexerIOSim;
+import frc.robot.subsystems.Indexer.IndexerIOreal;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.indexer.indexer;
-import frc.robot.subsystems.indexer.indexerIO;
-import frc.robot.subsystems.indexer.indexerIOreal;
-import frc.robot.subsystems.indexer.indexerIOsim;
 import frc.robot.subsystems.intake.intake;
 import frc.robot.subsystems.intake.intakeConstants;
 import frc.robot.subsystems.intake.intakeIO;
@@ -58,7 +58,7 @@ public class RobotContainer {
   private final Drive drive;
   private final Vision vision;
   private final shooter shooter;
-  private final indexer indexer;
+  private final Indexer indexer;
   private final FireControl fireControl;
 
   // Controllers
@@ -88,7 +88,7 @@ public class RobotContainer {
 
         shooter = new shooter(new shooterIOreal());
 
-        indexer = new indexer(new indexerIOreal());
+        indexer = new Indexer(new IndexerIOreal());
 
         fireControl = new FireControl();
         fireControl.initialize();
@@ -112,7 +112,7 @@ public class RobotContainer {
 
         shooter = new shooter(new shooterIOsim());
 
-        indexer = new indexer(new indexerIOsim());
+        indexer = new Indexer(new IndexerIOSim());
 
         fireControl = new FireControl();
         fireControl.initialize();
@@ -130,7 +130,7 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         intake = new intake(new intakeIO() {});
         shooter = new shooter(new shooterIO() {});
-        indexer = new indexer(new indexerIO() {});
+        indexer = new Indexer(new IndexerIO() {});
         fireControl = new FireControl();
         fireControl.initialize();
         break;

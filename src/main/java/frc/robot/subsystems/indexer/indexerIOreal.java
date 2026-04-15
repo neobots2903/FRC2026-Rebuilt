@@ -1,4 +1,4 @@
-package frc.robot.subsystems.indexer;
+package frc.robot.subsystems.Indexer;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
@@ -9,14 +9,14 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import frc.robot.subsystems.shooter.shooterConstants;
 
-public class indexerIOreal implements indexerIO {
+public class IndexerIOreal implements IndexerIO {
 
   // Indexer motor
   private final SparkMax indexerMotor;
 
   // Generally sets up the motor
   @SuppressWarnings("removal")
-  public indexerIOreal() {
+  public IndexerIOreal() {
     indexerMotor = new SparkMax(shooterConstants.kIndexerMotorID, MotorType.kBrushless);
     indexerMotor.configure(
         configureIndexerMotor(), ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -33,7 +33,7 @@ public class indexerIOreal implements indexerIO {
 
   @Override
   // Updates inputs
-  public void updateInputs(indexerIOInputs inputs) {
+  public void updateInputs(IndexerIOInputs inputs) {
     // Updates the indexer inputs
     inputs.indexerAppliedCurrentAmps = indexerMotor.getOutputCurrent();
     inputs.indexerAppliedVolts = indexerMotor.getAppliedOutput() * indexerMotor.getBusVoltage();

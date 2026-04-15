@@ -65,8 +65,8 @@ public class FireControl {
   // hubForward must point FROM the hub TOWARD the alliance's side of the field.
   // The ShotCalculator rejects shots where dot(hub-robot, hubForward) < 0,
   // i.e. the robot is "behind" the hub.
-  // Blue robots approach from X < hubX, so (hub - robot) points +X → hubForward = (+1, 0)
-  // Red robots approach from X > hubX, so (hub - robot) points -X → hubForward = (-1, 0)
+  // Blue robots approach from X < hubX, so (hub - robot) points +X -> hubForward = (+1, 0)
+  // Red robots approach from X > hubX, so (hub - robot) points -X -> hubForward = (-1, 0)
   private static final Translation2d BLUE_HUB_FORWARD = new Translation2d(1, 0);
   private static final Translation2d RED_HUB_FORWARD = new Translation2d(-1, 0);
 
@@ -133,7 +133,7 @@ public class FireControl {
               WHEEL_DIAMETER_M,
               shooterConstants.TARGET_Z_METERS,
               SLIP_FACTOR,
-              launchAngle, // ← actual launch angle from horizontal
+              launchAngle, // <-- actual launch angle from horizontal
               SIM_DT,
               RPM_MIN,
               RPM_MAX,

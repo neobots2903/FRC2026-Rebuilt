@@ -1,13 +1,13 @@
-package frc.robot.subsystems.indexer;
+package frc.robot.subsystems.Indexer;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.robot.subsystems.indexer.indexerIO.indexerIOInputs;
+import frc.robot.subsystems.Indexer.IndexerIO.IndexerIOInputs;
 import frc.robot.subsystems.shooter.shooterConstants;
 
-public class indexerIOsim implements indexerIO {
+public class IndexerIOSim implements IndexerIO {
   // The simulated motor
   private final DCMotorSim indexerMotorSim;
   // The applied voltage
@@ -15,7 +15,7 @@ public class indexerIOsim implements indexerIO {
   // The constants for the simulation
   private static final double MOI = 0.01;
 
-  public indexerIOsim() {
+  public IndexerIOSim() {
     indexerMotorSim =
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(
@@ -24,7 +24,7 @@ public class indexerIOsim implements indexerIO {
   }
 
   @Override
-  public void updateInputs(indexerIOInputs inputs) {
+  public void updateInputs(IndexerIOInputs inputs) {
     // Updates the simulation
     indexerMotorSim.setInputVoltage(indexerAppliedVolts);
     indexerMotorSim.update(0.02);
