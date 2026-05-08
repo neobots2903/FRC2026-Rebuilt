@@ -1,5 +1,4 @@
 // Copyright (c) 2021-2026 Littleton Robotics
-// http://github.com/Mechanical-Advantage
 //
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file
@@ -10,36 +9,32 @@ package frc.robot;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AimCommands;
+import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.climb.climb;
-import frc.robot.subsystems.climb.climbIO;
-import frc.robot.subsystems.climb.climbIOsim;
-import frc.robot.subsystems.climb.climbIOsparkmax;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.indexer.indexer;
+import frc.robot.subsystems.indexer.indexerIO;
+import frc.robot.subsystems.indexer.indexerIOreal;
+import frc.robot.subsystems.indexer.indexerIOsim;
 import frc.robot.subsystems.intake.intake;
+import frc.robot.subsystems.intake.intakeConstants;
 import frc.robot.subsystems.intake.intakeIO;
 import frc.robot.subsystems.intake.intakeIOsim;
 import frc.robot.subsystems.intake.intakeIOsparkmax;
-import frc.robot.subsystems.shooter.ShooterKinematics;
-import frc.robot.subsystems.shooter.indexer;
-import frc.robot.subsystems.shooter.indexerIO;
-import frc.robot.subsystems.shooter.indexerIOreal;
-import frc.robot.subsystems.shooter.indexerIOsim;
+import frc.robot.subsystems.shooter.FireControl;
 import frc.robot.subsystems.shooter.shooter;
 import frc.robot.subsystems.shooter.shooterConstants;
 import frc.robot.subsystems.shooter.shooterIO;
@@ -64,7 +59,7 @@ public class RobotContainer {
   private final Vision vision;
   private final shooter shooter;
   private final indexer indexer;
-  private final climb climb;
+  private final FireControl fireControl;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -77,9 +72,6 @@ public class RobotContainer {
   public RobotContainer() {
     switch (Constants.currentMode) {
       case REAL:
-        // Real robot, instantiate hardware IO implementations
-        // ModuleIOTalonFX is intended for modules with TalonFX drive, TalonFX turn, and
-        // a CANcoder
         drive =
             new Drive(
                 new GyroIOPigeon2(),
@@ -88,33 +80,9 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
 
-        // The ModuleIOTalonFXS implementation provides an example implementation for
-        // TalonFXS controller connected to a CANdi with a PWM encoder. The
-        // implementations
-        // of ModuleIOTalonFX, ModuleIOTalonFXS, and ModuleIOSpark (from the Spark
-        // swerve
-        // template) can be freely intermixed to support alternative hardware
-        // arrangements.
-        // Please see the AdvantageKit template documentation for more information:
-        // https://docs.advantagekit.org/getting-started/template-projects/talonfx-swerve-template#custom-module-implementations
-        //
-        // drive =
-        // new Drive(
-        // new GyroIOPigeon2(),
-        // new ModuleIOTalonFXS(TunerConstants.FrontLeft),
-        // new ModuleIOTalonFXS(TunerConstants.FrontRight),
-        // new ModuleIOTalonFXS(TunerConstants.BackLeft),
-        // new ModuleIOTalonFXS(TunerConstants.BackRight));
-
-        // Real robot, instantiate hardware IO implementations
         vision =
             new Vision(
                 drive::addVisionMeasurement, new VisionIOPhotonVision(camera0Name, robotToCamera0));
-        // vision =
-        // new Vision(
-        // demoDrive::addVisionMeasurement,
-        // new VisionIOPhotonVision(camera0Name, robotToCamera0),
-        // new VisionIOPhotonVision(camera1Name, robotToCamera1));
 
         intake = new intake(new intakeIOsparkmax());
 
@@ -122,12 +90,12 @@ public class RobotContainer {
 
         indexer = new indexer(new indexerIOreal());
 
-        climb = new climb(new climbIOsparkmax());
+        fireControl = new FireControl();
+        fireControl.initialize();
 
         break;
 
       case SIM:
-        // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
                 new GyroIO() {},
@@ -135,7 +103,6 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        // Sim robot, instantiate physics sim IO implementations
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -147,12 +114,12 @@ public class RobotContainer {
 
         indexer = new indexer(new indexerIOsim());
 
-        climb = new climb(new climbIOsim());
+        fireControl = new FireControl();
+        fireControl.initialize();
 
         break;
 
       default:
-        // Replayed robot, disable IO implementations
         drive =
             new Drive(
                 new GyroIO() {},
@@ -160,49 +127,45 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        // Replayed robot, disable IO implementations
-        // (Use same number of dummy implementations as the real robot)
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         intake = new intake(new intakeIO() {});
         shooter = new shooter(new shooterIO() {});
         indexer = new indexer(new indexerIO() {});
-        climb = new climb(new climbIO() {});
+        fireControl = new FireControl();
+        fireControl.initialize();
         break;
     }
+
+    // Register named commands for PathPlanner autos
+    // Use shimmy version to help feed balls from hopper
+    // NamedCommands.registerCommand(
+    //     "Score Fuel", AutoCommands.ScoreFuel(indexer, shooter, intake, drive, false));
+    NamedCommands.registerCommand(
+        "Score Fuel", AutoCommands.ScoreFuel(indexer, shooter, intake, drive, fireControl, true));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
     autoChooser.addOption(
         "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+    // Wire up safety interlocks - flywheel won't spin when intake is stowed
+    shooter.setIntakeStowedSupplier(intake::isStowed);
 
     // Configure the button bindings
     configureButtonBindings();
   }
 
-  /**
-   * Use this method to define your button->command mappings. Buttons can be created by
-   * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
-   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-   */
+  /** Configures button-to-command mappings for driver and operator controllers. */
   private void configureButtonBindings() {
 
-    // Drive inputs:
+    configureDriverBindings();
+    configureOperatorBindings();
+  }
 
+  private void configureDriverBindings() {
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -211,7 +174,7 @@ public class RobotContainer {
             () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
 
-    // Lock to 0° when A button is held
+    // Lock to 0 degrees when A button is held
     driverController
         .a()
         .whileTrue(
@@ -224,7 +187,7 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro to 0° when B button is pressed
+    // Reset gyro to 0 degrees when B button is pressed
     driverController
         .b()
         .onTrue(
@@ -235,20 +198,53 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    // Intake inputs:
-
-    operatorController
-        .b()
+    // D-Pad snap to cardinal directions (relative to field)
+    driverController
+        .povUp()
         .onTrue(
-            Commands.runOnce(
-                () -> {
-                  if (!intake.isIntakeRunning()) {
-                    intake.startIntake();
-                  } else if (intake.isIntakeRunning()) {
-                    intake.stopIntake();
-                  }
-                }));
+            DriveCommands.snapToAngle(
+                drive,
+                () -> -driverController.getLeftY(),
+                () -> -driverController.getLeftX(),
+                Rotation2d.kZero));
+    driverController
+        .povRight()
+        .onTrue(
+            DriveCommands.snapToAngle(
+                drive,
+                () -> -driverController.getLeftY(),
+                () -> -driverController.getLeftX(),
+                Rotation2d.fromDegrees(270)));
+    driverController
+        .povDown()
+        .onTrue(
+            DriveCommands.snapToAngle(
+                drive,
+                () -> -driverController.getLeftY(),
+                () -> -driverController.getLeftX(),
+                Rotation2d.fromDegrees(180)));
+    driverController
+        .povLeft()
+        .onTrue(
+            DriveCommands.snapToAngle(
+                drive,
+                () -> -driverController.getLeftY(),
+                () -> -driverController.getLeftX(),
+                Rotation2d.fromDegrees(90)));
 
+    // Slow mode when LT is held
+    driverController
+        .leftTrigger()
+        .whileTrue(
+            DriveCommands.joystickDrive(
+                drive,
+                () -> -driverController.getLeftY() * 0.5,
+                () -> -driverController.getLeftX() * 0.5,
+                () -> -driverController.getRightX() * 0.5));
+  }
+
+  private void configureOperatorBindings() {
+    // A: Toggle intake pivot (up/down)
     operatorController
         .a()
         .onTrue(
@@ -256,80 +252,136 @@ public class RobotContainer {
                 () -> {
                   if (intake.getPivotAngle() > 50) {
                     intake.setPivotAngle(0);
-                  } else if (intake.getPivotAngle() < 50) {
-                    intake.setPivotAngle(100);
+                  } else {
+                    intake.setPivotAngle(90);
                   }
                 }));
 
-    // Shooter inputs:
+    // B: Toggle intake into robot
+    operatorController
+        .b()
+        .onTrue(Commands.run(() -> intake.startIntake(), intake))
+        .onFalse(Commands.run(() -> intake.stopIntake(), intake));
 
+    // X: Toggle indexer
     operatorController
         .x()
-        .whileTrue(Commands.run(shooter::startFlywheel, shooter))
-        .onFalse(Commands.run(shooter::stopFlywheel, shooter));
-
-    operatorController
-        .leftTrigger()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  if (shooter.getHoodPosition() > shooterConstants.kMinHoodAngle) {
-                    shooter.setHoodPosition(shooter.getHoodPosition() - 5);
-                  }
-                }));
-
-    operatorController
-        .rightTrigger()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  if (shooter.getHoodPosition() < shooterConstants.kMaxHoodAngle) {
-                    shooter.setHoodPosition(shooter.getHoodPosition() + 5);
-                  }
-                }));
-
-    operatorController
-        .y()
-        .whileTrue(
-            Commands.parallel(
-                new AimCommands(shooter, drive::getPose),
-                DriveCommands.joystickDriveAtAngle(
-                    drive,
-                    () -> -driverController.getLeftY(),
-                    () -> -driverController.getLeftX(),
-                    () -> ShooterKinematics.calculateTurretAngleRotation(drive.getPose()))));
-
-    operatorController
-        .leftBumper()
         .onTrue(
             Commands.runOnce(
                 () -> {
                   if (!indexer.isIndexerRunning()) {
                     indexer.startIndexer();
-                  } else if (indexer.isIndexerRunning()) {
+                  } else {
                     indexer.stopIndexer();
                   }
                 }));
 
-    // Climb inputs:
+    // Y: Auto-aim + shoot (hold)
+    operatorController
+        .leftTrigger()
+        .whileTrue(
+            Commands.parallel(
+                new AimCommands(
+                    shooter,
+                    fireControl,
+                    drive::getPose,
+                    drive::getFieldRelativeSpeeds,
+                    drive::getChassisSpeeds),
+                DriveCommands.joystickDriveAtAngle(
+                    drive,
+                    () -> -driverController.getLeftY(),
+                    () -> -driverController.getLeftX(),
+                    () -> {
+                      // Aim the chassis at the hub while driving
+                      var hub = FireControl.getHubCenter();
+                      var pose = drive.getPose();
+                      double dx = hub.getX() - pose.getX();
+                      double dy = hub.getY() - pose.getY();
+                      return new Rotation2d(dx, dy);
+                    })));
 
+    //  When RB is held, intake out back at full speed
     operatorController
         .rightBumper()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  // if (climb.getClimbAngle() < 180) {
-                  climb.setClimbAngle(100);
-                  // } else if (climb.getClimbAngle() > 180) {
-                  //   climb.setClimbAngle(0);
-                  // }
-                }));
+        .onTrue(Commands.run(() -> intake.shootOutBack(), intake))
+        .onFalse(Commands.run(() -> intake.stopIntake(), intake));
 
-    // TODO:
-    // Run this in parallel with 'joystickDriveAtAngle' to point the robot at the hub while
-    // shooting.
-    // You can probably get the angle to point towards using your turret angle code from
-    // ShooterKinematics since it's just an angle (needs to be modified slightly)
+    // LB trim -2 degrees to intake pivot angle
+    operatorController
+        .leftBumper()
+        .whileTrue(
+            Commands.run(
+                () -> {
+                  double currentAngle = intake.getPivotAngle();
+                  double newAngle = currentAngle - 2.0;
+                  // Clamp to valid range
+                  newAngle =
+                      Math.max(
+                          intakeConstants.kInPosition,
+                          Math.min(intakeConstants.kOutPosition, newAngle));
+                  intake.setPivotAngle(newAngle);
+                },
+                intake));
+
+    // Right D-Pad: +2 degrees to intake pivot angle
+    operatorController
+        .povRight()
+        .whileTrue(
+            Commands.run(
+                () -> {
+                  double currentAngle = intake.getPivotAngle();
+                  double newAngle = currentAngle + 2.0;
+                  // Clamp to valid range
+                  newAngle =
+                      Math.max(
+                          intakeConstants.kInPosition,
+                          Math.min(intakeConstants.kOutPosition, newAngle));
+                  intake.setPivotAngle(newAngle);
+                },
+                intake));
+
+    // RT (analog): Manual flywheel with proportional RPM (1800-3600 RPM)
+    // Uses quadratic curve for finer control at lower trigger values
+    operatorController
+        .rightTrigger(0.1) // Small deadband
+        .whileTrue(
+            Commands.run(
+                () -> {
+                  double triggerValue = operatorController.getRightTriggerAxis();
+                  // Apply input squaring for finer low-end control
+                  double curved = triggerValue * triggerValue;
+                  // Map 0-1 curved trigger to 1800-3600 RPM
+                  double rpm = 1800 + (curved * 1800);
+                  shooter.startFlywheel(rpm);
+                },
+                shooter))
+        .onFalse(Commands.runOnce(() -> shooter.stopFlywheel(), shooter));
+
+    // Left Stick Y: Hood angle (up/down, proportional)
+    // This runs continuously as a default command for the shooter hood
+    shooter.setDefaultCommand(
+        Commands.run(
+            () -> {
+              double stickY = -operatorController.getLeftY(); // Invert so up = up
+              if (Math.abs(stickY) > 0.1) { // Deadband
+                double currentAngle = shooter.getHoodPosition();
+                // Adjust hood by small increments based on stick position
+                double adjustment = stickY * 1.0; // 1 degree per cycle at full deflection
+                double newAngle = currentAngle + adjustment;
+                // Clamp to valid range
+                newAngle =
+                    Math.max(
+                        shooterConstants.kMinHoodAngle,
+                        Math.min(shooterConstants.kMaxHoodAngle, newAngle));
+                shooter.setHoodPosition(newAngle);
+              }
+            },
+            shooter));
+
+    // D-Pad: RPM trim controls
+    operatorController.povUp().onTrue(Commands.runOnce(() -> fireControl.adjustOffset(25)));
+    operatorController.povDown().onTrue(Commands.runOnce(() -> fireControl.adjustOffset(-25)));
+    operatorController.povLeft().onTrue(Commands.runOnce(() -> fireControl.resetOffset()));
   }
 
   /**

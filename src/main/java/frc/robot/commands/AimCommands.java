@@ -1,9 +1,10 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.shooter.ShooterKinematics;
-import frc.robot.subsystems.shooter.ShooterKinematics.ShooterSolution;
+import frc.robot.subsystems.shooter.FireControl;
+import frc.robot.subsystems.shooter.FireControl.FireControlResult;
 import frc.robot.subsystems.shooter.shooter;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -11,81 +12,91 @@ import org.littletonrobotics.junction.Logger;
 public class AimCommands extends Command {
 
   private final shooter m_shooter;
-  private final Supplier<Pose2d> m_robotPose;
-  private int counter;
-  private boolean currentlyOn;
-  private ShooterSolution m_lastValidSolution = ShooterSolution.INVALID;
+  private final FireControl m_fireControl;
+  private final Supplier<Pose2d> m_poseSupplier;
+  private final Supplier<ChassisSpeeds> m_fieldVelocitySupplier;
+  private final Supplier<ChassisSpeeds> m_robotVelocitySupplier;
 
-  public AimCommands(shooter shooter, Supplier<Pose2d> robotPose) {
+  private int invalidCounter;
+  private boolean currentlyOn;
+  private FireControlResult m_lastValid = FireControlResult.INVALID;
+
+  /** Minimum confidence (0-100) to allow a shot. */
+  private static final double MIN_CONFIDENCE = 40.0;
+
+  /** Cycles to hold the last-valid solution before stopping (prevents flickering). */
+  private static final int HOLD_CYCLES = 10;
+
+  public AimCommands(
+      shooter shooter,
+      FireControl fireControl,
+      Supplier<Pose2d> poseSupplier,
+      Supplier<ChassisSpeeds> fieldVelocitySupplier,
+      Supplier<ChassisSpeeds> robotVelocitySupplier) {
     m_shooter = shooter;
-    m_robotPose = robotPose;
+    m_fireControl = fireControl;
+    m_poseSupplier = poseSupplier;
+    m_fieldVelocitySupplier = fieldVelocitySupplier;
+    m_robotVelocitySupplier = robotVelocitySupplier;
     addRequirements(shooter);
   }
 
   @Override
   public void initialize() {
-    // Code to run when the command is initially scheduled.
-    counter = 0;
+    invalidCounter = 0;
     currentlyOn = false;
-    m_lastValidSolution = ShooterSolution.INVALID;
+    m_lastValid = FireControlResult.INVALID;
   }
-
-  // @Override
-  // public void execute() {
-  //   // Code to run repeatedly while the command is scheduled.
-  //   double optimalHoodAngleDeg =
-  //       ShooterKinematics.getOptimalHoodAngleDeg(
-  //           m_robotPose.get(), shooterConstants.TARGET_POSE_METERS.toTranslation2d());
-  //   m_shooter.setHoodPosition(optimalHoodAngleDeg);
-  //   m_shooter.startFlywheel();
-  // }
 
   @Override
   public void execute() {
-    // Get a full solution: both hood angle AND flywheel RPM
-    ShooterSolution solution =
-        ShooterKinematics.getOptimalSolution(
-            m_robotPose.get(), ShooterKinematics.getTargetTowerPosition().toTranslation2d());
-    Logger.recordOutput("Shooter/valid", solution.isValid);
-    Logger.recordOutput("Shooter/counter", counter);
-    Logger.recordOutput("Shooter/CurrentlyOn", currentlyOn);
+    FireControlResult result =
+        m_fireControl.calculate(
+            m_poseSupplier.get(),
+            m_fieldVelocitySupplier.get(),
+            m_robotVelocitySupplier.get(),
+            0.9); // vision confidence
 
-    if (solution.isValid) {
-      // Set the hood to the computed angle
-      m_shooter.setHoodPosition(solution.hoodAngleDeg);
-      // Spin the flywheel to the computed RPM (not a fixed constant!)
-      m_shooter.startFlywheel(solution.motorRPM);
-      counter = 0;
+    var shot = result.launchParams;
+
+    Logger.recordOutput("Aim/Valid", shot.isValid());
+    Logger.recordOutput("Aim/Confidence", shot.confidence());
+    Logger.recordOutput("Aim/HoodAngleDeg", result.hoodAngleDeg);
+    Logger.recordOutput("Aim/CurrentlyOn", currentlyOn);
+    Logger.recordOutput("Aim/InvalidCounter", invalidCounter);
+
+    if (shot.isValid() && shot.confidence() > MIN_CONFIDENCE) {
+      // Good solution — set hood angle and spin up flywheel
+      m_shooter.setHoodPosition(result.hoodAngleDeg);
+      m_shooter.startFlywheel(shot.rpm());
+      invalidCounter = 0;
       currentlyOn = true;
-      m_lastValidSolution = solution;
-    } else if (currentlyOn) {
-      counter++;
-      if (counter >= 10) { // TODO: The stuff in the if and the else are flipped I think
+      m_lastValid = result;
+    } else if (currentlyOn && m_lastValid.launchParams.isValid()) {
+      // Solution dropped out — hold the last good values for a few cycles to prevent flicker
+      invalidCounter++;
+      if (invalidCounter >= HOLD_CYCLES) {
         currentlyOn = false;
         m_shooter.stopFlywheel();
       } else {
-        // Set the hood to the computed angle
-        m_shooter.setHoodPosition(m_lastValidSolution.hoodAngleDeg);
-        // Spin the flywheel to the computed RPM (not a fixed constant!)
-        m_shooter.startFlywheel(m_lastValidSolution.motorRPM);
+        m_shooter.setHoodPosition(m_lastValid.hoodAngleDeg);
+        m_shooter.startFlywheel(m_lastValid.launchParams.rpm());
       }
     } else {
-      // Target is unreachable — stop shooting, park the hood
+      // No valid solution — stop
       m_shooter.stopFlywheel();
     }
   }
 
   @Override
   public void end(boolean interrupted) {
-    // Code to run once after the command ends or is interrupted.
     m_shooter.stopFlywheel();
-    counter = 0;
+    invalidCounter = 0;
     currentlyOn = false;
   }
 
   @Override
   public boolean isFinished() {
-    // Return true when the command should end.
-    return false; // Change this condition as needed.
+    return false;
   }
 }

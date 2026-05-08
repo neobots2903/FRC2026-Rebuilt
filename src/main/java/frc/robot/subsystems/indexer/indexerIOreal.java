@@ -1,4 +1,4 @@
-package frc.robot.subsystems.shooter;
+package frc.robot.subsystems.indexer;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
@@ -7,6 +7,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
+import frc.robot.subsystems.shooter.shooterConstants;
 
 public class indexerIOreal implements indexerIO {
 
@@ -25,7 +26,7 @@ public class indexerIOreal implements indexerIO {
   private SparkMaxConfig configureIndexerMotor() {
     SparkMaxConfig config = new SparkMaxConfig();
     config.idleMode(IdleMode.kBrake);
-    config.smartCurrentLimit(shooterConstants.kCurrentLimit);
+    config.smartCurrentLimit(shooterConstants.kIndexerCurrentLimit);
     config.voltageCompensation(12.0);
     return config;
   }

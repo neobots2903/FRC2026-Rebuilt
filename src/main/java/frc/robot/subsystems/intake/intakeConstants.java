@@ -16,7 +16,7 @@ public class intakeConstants {
   public static final int kIntakeCurrentLimit = 20;
   public static final double kIntakeStallCurrent = 15.0;
   // PID values
-  public static final double kPivotP = 0.15;
+  public static final double kPivotP = 0.075;
   public static final double kPivotI = 0.0;
   public static final double kPivotD = 0.05;
   // Tolerances
