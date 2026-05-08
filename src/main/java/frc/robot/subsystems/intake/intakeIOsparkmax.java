@@ -48,6 +48,7 @@ public class intakeIOsparkmax implements intakeIO {
     config.smartCurrentLimit(intakeConstants.kPivotCurrentLimit);
     config.voltageCompensation(12.0);
     config.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+    config.inverted(true);
     // Configures PID
     config.closedLoop.pid(
         intakeConstants.kPivotP, intakeConstants.kPivotI, intakeConstants.kPivotD);
